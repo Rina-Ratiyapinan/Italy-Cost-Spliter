@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Italy Trip 🇮🇹 · Splitwise Style</title>
+<title>Italy Trip 🇮🇹 · Shared Expenses</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent }
@@ -344,6 +344,23 @@ body {
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 .pb { padding-bottom: 24px; }
+.loading-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.loading-spinner {
+  background: white; padding: 20px 30px;
+  border-radius: 20px; text-align: center;
+}
+.loading-spinner .spinner {
+  width: 40px; height: 40px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -368,9 +385,9 @@ body {
         <div class="curr-pill"        id="pill-THB" onclick="setCurr('THB')">฿ THB</div>
       </div>
     </div>
-    <button class="sync-btn" onclick="syncData()">
+    <button class="sync-btn" onclick="syncData(true)">
       <div class="sync-dot" id="syncDot"></div>
-      <span id="syncLbl">Sync</span>
+      <span id="syncLbl">Synced</span>
     </button>
   </div>
 </div>
@@ -486,7 +503,7 @@ body {
   <div class="section-label">By Currency</div>
   <div class="summary-card" id="currBreakdown"></div>
   <div style="padding:0 16px 24px">
-    <button onclick="syncData()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:12px;background:white;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+    <button onclick="syncData(true)" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:12px;background:white;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
       🔄 Refresh from Google Sheets
     </button>
   </div>
@@ -502,6 +519,7 @@ let displayCurr = localStorage.getItem('displayCurr') || 'EUR';
 let expenses = [];
 let payer = 'rina';
 let expCurr = 'EUR';
+let isLoading = false;
 
 function toDisplay(amount, fromCurr) {
   const inEUR = fromCurr === 'EUR' ? amount : amount / THB_RATE;
@@ -518,34 +536,33 @@ function fmtOrig(amount, curr) {
   return sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Cache is now just for offline fallback - Google Sheets is primary source
 function saveCache() {
   try {
-    localStorage.setItem('it_expenses', JSON.stringify(expenses));
-    console.log('Cache saved, expenses count:', expenses.length);
-  } catch(e) { console.warn('Save cache error:', e); }
+    localStorage.setItem('it_expenses_backup', JSON.stringify(expenses));
+  } catch(e) { }
 }
 
 function loadCache() {
   try {
-    const raw = localStorage.getItem('it_expenses');
+    const raw = localStorage.getItem('it_expenses_backup');
     if (raw && raw !== 'undefined' && raw !== 'null') {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
         expenses = parsed;
-        console.log('Cache loaded, expenses count:', expenses.length);
         return true;
       }
     }
-  } catch(e) { console.warn('Load cache error:', e); }
-  expenses = [];
+  } catch(e) { }
   return false;
 }
 
-async function dbGet() {
-  const r = await fetch(SHEETDB, { cache: 'no-store' });
-  if (!r.ok) throw new Error('GET ' + r.status);
-  const rows = await r.json();
+async function fetchFromSheet() {
+  const response = await fetch(SHEETDB, { cache: 'no-store' });
+  if (!response.ok) throw new Error('HTTP ' + response.status);
+  const rows = await response.json();
   if (!Array.isArray(rows)) throw new Error('Invalid response');
+  
   return rows.map(row => ({
     id:       Number(row.id),
     desc:     String(row.desc || ''),
@@ -558,8 +575,8 @@ async function dbGet() {
   })).filter(r => r.id && r.desc);
 }
 
-async function dbPost(exp) {
-  const r = await fetch(SHEETDB, {
+async function addToSheet(exp) {
+  const response = await fetch(SHEETDB, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ data: [{
@@ -573,46 +590,57 @@ async function dbPost(exp) {
       date:     exp.date,
     }] }),
   });
-  if (!r.ok) throw new Error('POST ' + r.status);
+  if (!response.ok) throw new Error('POST failed');
   return true;
 }
 
-async function dbDelete(id) {
-  const r = await fetch(`${SHEETDB}/id/${id}`, { method: 'DELETE' });
-  if (!r.ok) throw new Error('DELETE ' + r.status);
+async function deleteFromSheet(id) {
+  const response = await fetch(`${SHEETDB}/id/${id}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error('DELETE failed');
 }
 
-async function syncData() {
+async function syncData(showToastMsg = false) {
+  if (isLoading) return;
+  isLoading = true;
   setSyncState('syncing');
-  showToast('Syncing with Google Sheets...');
+  if (showToastMsg) showToast('Loading from Google Sheets...');
   
   try {
-    const fresh = await dbGet();
-    console.log('Fetched from sheet:', fresh.length, 'expenses');
+    const sheetData = await fetchFromSheet();
+    console.log('Sheet data loaded:', sheetData.length, 'expenses');
     
-    if (fresh.length > 0) {
-      // Replace local data with sheet data (sheet is source of truth)
-      expenses = fresh;
-      saveCache();
+    if (sheetData.length > 0) {
+      expenses = sheetData.sort((a, b) => b.id - a.id); // newest first
+      saveCache(); // backup for offline
       updateAll();
-      showToast(`✓ Synced ${expenses.length} expenses from Google Sheets`);
       setSyncState('ok');
-    } else if (expenses.length > 0) {
-      // Sheet is empty but we have local data - keep local
-      showToast(`⚠ Sheet empty, keeping ${expenses.length} local expenses`);
+      if (showToastMsg) showToast(`✓ Loaded ${expenses.length} expenses from sheet`);
+    } else if (expenses.length === 0) {
+      // Try cache if sheet is empty
+      if (loadCache()) {
+        updateAll();
+        showToast(`⚠ Using cached data (${expenses.length} expenses)`);
+      } else {
+        updateAll();
+        if (showToastMsg) showToast('No expenses found');
+      }
       setSyncState('error');
     } else {
-      showToast('✓ No expenses found');
+      updateAll();
       setSyncState('ok');
     }
   } catch(e) {
     console.error('Sync error:', e);
-    showToast('⚠ Sync failed - using cached data');
-    setSyncState('error');
-    if (expenses.length === 0) {
-      loadCache();
+    if (loadCache()) {
       updateAll();
+      showToast(`⚠ Offline mode - showing ${expenses.length} cached expenses`);
+    } else {
+      updateAll();
+      if (showToastMsg) showToast('⚠ Failed to load from Google Sheets');
     }
+    setSyncState('error');
+  } finally {
+    isLoading = false;
   }
 }
 
@@ -621,7 +649,7 @@ function setSyncState(s) {
   const lbl = document.getElementById('syncLbl');
   if (!dot) return;
   dot.className = 'sync-dot' + (s === 'syncing' ? ' syncing' : s === 'error' ? ' error' : '');
-  lbl.textContent = s === 'syncing' ? 'Syncing…' : s === 'error' ? 'Error' : 'Synced';
+  lbl.textContent = s === 'syncing' ? 'Loading…' : s === 'error' ? 'Offline' : 'Synced';
 }
 
 function setPayer(p) {
@@ -647,7 +675,7 @@ function setExpCurr(c) {
 }
 
 function updateConvHint() {
-  const amt = parseFloat(document.getElementById('amount').value);
+  const amt = parseFloat(document.getElementById('amount')?.value);
   const el = document.getElementById('convHint');
   if (!el) return;
   if (!amt || isNaN(amt)) { el.textContent = ''; return; }
@@ -680,9 +708,8 @@ async function addExpense() {
     date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
   };
 
-  // Add to local state immediately
+  // Optimistic UI update
   expenses.unshift(newExp);
-  saveCache();
   updateAll();
 
   descEl.value = '';
@@ -695,12 +722,13 @@ async function addExpense() {
   btn.textContent = 'Saving…';
   
   try {
-    await dbPost(newExp);
+    await addToSheet(newExp);
+    saveCache();
     showToast('✓ Saved to Google Sheets');
     setSyncState('ok');
   } catch(e) {
     console.warn('Sheet save error:', e);
-    showToast('⚠ Saved locally, but sheet sync failed');
+    showToast('⚠ Saved locally only - will sync when online');
     setSyncState('error');
   } finally {
     btn.classList.remove('busy');
@@ -711,15 +739,16 @@ async function addExpense() {
 async function deleteExpense(id) {
   if (!confirm('Remove this expense?')) return;
   
+  const deletedExp = expenses.find(e => e.id === id);
   expenses = expenses.filter(e => e.id !== id);
-  saveCache();
   updateAll();
   
   try {
-    await dbDelete(id);
-    showToast('✓ Removed from sheet');
+    await deleteFromSheet(id);
+    saveCache();
+    showToast('✓ Deleted from sheet');
   } catch(e) {
-    showToast('⚠ Removed locally, sheet sync error');
+    showToast('⚠ Removed locally only');
     setSyncState('error');
   }
 }
@@ -731,7 +760,6 @@ function switchTab(tab) {
     const btn = document.getElementById('tab-btn-' + t);
     if (btn) btn.classList.toggle('active', t === tab);
   });
-  updateAll();
 }
 
 function updateAll() {
@@ -777,12 +805,13 @@ function renderExpensesList() {
   
   document.getElementById('expLabel').textContent = `All Expenses (${expenses.length})`;
   
+  const catEmoji = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' };
+  const catLabel = { food:'Food', accommodation:'Hotel', transport:'Transit', activity:'Sight', shopping:'Shop', other:'Other' };
+  const cityColors = { Verona:'#FF6B6B', Bergamo:'#4ECDC4', Milan:'#A78BFA' };
+  
   container.innerHTML = expenses.map(e => {
     const disp = toDisplay(e.amount, e.currency);
     const showOrig = e.currency !== displayCurr;
-    const catEmoji = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' };
-    const catLabel = { food:'Food', accommodation:'Hotel', transport:'Transit', activity:'Sight', shopping:'Shop', other:'Other' };
-    const cityColors = { Verona:'#FF6B6B', Bergamo:'#4ECDC4', Milan:'#A78BFA' };
     
     return `<div class="expense-item">
       <div class="exp-icon cat-${e.cat}">${catEmoji[e.cat] || '📌'}</div>
@@ -870,38 +899,22 @@ function showToast(msg) {
   setTimeout(()=> t.classList.remove('show'), 2800); 
 }
 
-function setProgress(pct) {
-  const el = document.getElementById('progBar');
-  if (!el) return;
-  el.style.transform = `scaleX(${pct/100})`;
-  if (pct >= 100) setTimeout(() => { el.style.transform = 'scaleX(0)'; }, 600);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('App starting...');
-  
-  // Load cached expenses first (instant display)
-  const hasCache = loadCache();
-  console.log('Cache loaded, has data:', hasCache, 'count:', expenses.length);
+// Initialize - load from Google Sheets first!
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('App starting - loading from Google Sheets...');
   
   // Initialize UI
   setCurr(displayCurr);
   setPayer('rina');
   setExpCurr('EUR');
   
-  // Add input listener for conversion hint
   const amountInput = document.getElementById('amount');
   if (amountInput) {
     amountInput.addEventListener('input', updateConvHint);
   }
   
-  // Update UI with cached data (if any)
-  updateAll();
-  
-  // Then sync with sheet in background
-  setTimeout(() => {
-    syncData();
-  }, 500);
+  // Load from Google Sheets - this is the primary source
+  await syncData(true);
 });
 </script>
 </body>
