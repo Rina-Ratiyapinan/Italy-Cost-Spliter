@@ -527,7 +527,8 @@ body {
 <script>
 'use strict';
 
-const SHEETDB = 'https://sheetdb.io/api/v1/8wtjyfm1yij0s';
+// 🔴 IMPORTANT: REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyl6iZwYeG7ZqS0YncUNFJX4AXQ1HgJPSYsuCL3qEMQl_uA5ei9lzCpRkGmHBcVLxx9Yw/exec';
 
 let THB_RATE = parseFloat(localStorage.getItem('thb_rate') || '38.5');
 let displayCurr = localStorage.getItem('displayCurr') || 'EUR';
@@ -550,20 +551,22 @@ function fmtOrig(amount, curr) {
   return sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Fetch ALL data from Google Sheets
+// Fetch ALL data from Google Sheets via Apps Script
 async function fetchAllFromSheet() {
-  console.log('Fetching from SheetDB...');
-  const response = await fetch(SHEETDB, { 
+  console.log('Fetching from Google Apps Script...');
+  const response = await fetch(GOOGLE_SCRIPT_URL, { 
+    method: 'GET',
     cache: 'no-store',
     headers: { 'Cache-Control': 'no-cache' }
   });
+  
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const rows = await response.json();
-  console.log('Raw response from sheet:', rows);
+  const data = await response.json();
+  console.log('Fetched data:', data);
   
-  if (!Array.isArray(rows)) throw new Error('Invalid response format');
+  if (!Array.isArray(data)) throw new Error('Invalid response format');
   
-  const expenses_list = rows.map(row => ({
+  const expenses_list = data.map(row => ({
     id:       Number(row.id),
     desc:     String(row.desc || ''),
     amount:   parseFloat(row.amount) || 0,
@@ -578,43 +581,35 @@ async function fetchAllFromSheet() {
   return expenses_list;
 }
 
-// Add expense to sheet
+// Add expense to sheet via Apps Script
 async function addToSheet(exp) {
-  const payload = {
-    data: [{
-      id:       exp.id,
-      desc:     exp.desc,
-      amount:   exp.amount,
-      currency: exp.currency,
-      city:     exp.city,
-      cat:      exp.cat,
-      name:     exp.payer,
-      date:     exp.date,
-    }]
-  };
-  
-  console.log('Sending to sheet:', payload);
-  
-  const response = await fetch(SHEETDB, {
+  const response = await fetch(GOOGLE_SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      id: exp.id,
+      desc: exp.desc,
+      amount: exp.amount,
+      currency: exp.currency,
+      city: exp.city,
+      cat: exp.cat,
+      name: exp.payer,
+      date: exp.date
+    }),
   });
   
   if (!response.ok) throw new Error(`POST failed: ${response.status}`);
-  const result = await response.json();
-  console.log('Sheet response:', result);
   return true;
 }
 
-// Delete expense from sheet
+// Delete expense from sheet via Apps Script
 async function deleteFromSheet(id) {
-  const response = await fetch(`${SHEETDB}/id/${id}`, { method: 'DELETE' });
+  const response = await fetch(`${GOOGLE_SCRIPT_URL}?id=${id}`, { method: 'DELETE' });
   if (!response.ok) throw new Error(`DELETE failed: ${response.status}`);
   return true;
 }
 
-// Force refresh from Google Sheets (shows loading)
+// Force refresh from Google Sheets
 async function forceRefresh() {
   const loadingScreen = document.getElementById('loadingScreen');
   loadingScreen.classList.remove('hide');
@@ -654,6 +649,7 @@ async function loadDataFromSheet() {
         expenses = JSON.parse(backup);
         updateAll();
         console.log('Using backup data');
+        showToast('⚠ Using cached data');
       }
       setSyncState('error');
       return false;
@@ -943,14 +939,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     amountInput.addEventListener('input', updateConvHint);
   }
   
-  // Load from Google Sheets (shows loading screen)
+  // Load from Google Sheets
   try {
     await loadDataFromSheet();
   } catch(e) {
     console.error('Initial load error:', e);
     showToast('⚠ Could not load from Google Sheets');
   } finally {
-    // Hide loading screen
     const loadingScreen = document.getElementById('loadingScreen');
     loadingScreen.classList.add('hide');
   }
