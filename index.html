@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Italy Trip 🇮🇹</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent }
+
+:root {
+  --bg:      #FFF8F2;
+  --card:    #FFFFFF;
+  --accent:  #E8470A;
+  --accent2: #F7A66C;
+  --text:    #1A0F00;
+  --muted:   #7A6858;
+  --border:  #EDE0D4;
+  --verona:  #FF6B6B;
+  --bergamo: #4ECDC4;
+  --milan:   #A78BFA;
+  --rina:    #E8470A;
+  --alisa:   #3B82F6;
+  --green:   #16A34A;
+  --red:     #DC2626;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--accent);
+  color: white;
+  padding: 22px 20px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute; right: -30px; top: -30px;
+  width: 130px; height: 130px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.header::after {
+  content: '';
+  position: absolute; right: 20px; bottom: -25px;
+  width: 90px; height: 90px; border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative; z-index: 1;
+}
+.trip-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  opacity: 0.8; margin-bottom: 4px;
+}
+.trip-title {
+  font-size: 26px; font-weight: 700; line-height: 1.1;
+}
+.trip-dates { font-size: 12px; opacity: 0.75; margin-top: 6px; }
+.flag { font-size: 36px; position: relative; z-index: 1; }
+
+/* Currency toggle in header */
+.curr-toggle {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  justify-content: space-between;
+}
+.curr-toggle-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  opacity: 0.8;
+}
+.curr-pills { display: flex; gap: 6px; }
+.curr-pill {
+  padding: 4px 14px; border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(255,255,255,0.25);
+}
+.curr-pill.active {
+  background: white;
+  color: var(--accent);
+  border-color: white;
+}
+.sync-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px; padding: 5px 10px;
+  color: white; cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px; font-weight: 500;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.sync-btn:hover { background: rgba(255,255,255,0.25); }
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #4ade80; flex-shrink: 0;
+}
+.sync-dot.syncing { background: #fbbf24; animation: pulse 0.7s ease infinite alternate; }
+.sync-dot.error   { background: #f87171; }
+@keyframes pulse { from{opacity:1} to{opacity:0.3} }
+
+/* ── BALANCE CARD ── */
+.balance-card {
+  background: white; margin: 14px 16px;
+  border-radius: 16px; padding: 16px;
+  border: 1px solid var(--border);
+}
+.balance-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 12px;
+}
+.balance-title {
+  font-size: 11px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+}
+.balance-amount {
+  font-size: 22px; font-weight: 700; color: var(--text);
+}
+.people-row { display: flex; gap: 8px; }
+.person-pill {
+  flex: 1; background: var(--bg);
+  border-radius: 12px; padding: 11px 13px;
+  border: 1px solid var(--border);
+}
+.person-name {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px;
+}
+.person-name.rina  { color: var(--rina); }
+.person-name.alisa { color: var(--alisa); }
+.person-amount { font-size: 20px; font-weight: 700; }
+.person-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* ── SETTLEMENT ── */
+.settlement {
+  margin: 0 16px 6px; border-radius: 12px;
+  padding: 11px 14px; font-size: 13px; font-weight: 500;
+  text-align: center; display: none;
+}
+.settlement.owes { background: #FEF2F2; color: var(--red);   border: 1px solid #FECACA; }
+.settlement.even { background: #F0FDF4; color: var(--green); border: 1px solid #BBF7D0; }
+
+/* ── TABS ── */
+.tabs {
+  display: flex; margin: 0 16px;
+  background: white; border-radius: 12px;
+  padding: 4px; border: 1px solid var(--border);
+}
+.tab {
+  flex: 1; text-align: center; padding: 8px 4px;
+  border-radius: 9px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; color: var(--muted);
+  user-select: none;
+}
+.tab.active { background: var(--accent); color: white; }
+
+/* ── FORM ── */
+.form-card {
+  background: white; margin: 12px 16px;
+  border-radius: 16px; padding: 16px;
+  border: 1px solid var(--border);
+}
+.form-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+.field { margin-bottom: 11px; }
+.field label {
+  display: block; font-size: 10px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 5px;
+}
+.field input, .field select {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: 'Poppins', sans-serif; font-size: 13px;
+  background: var(--bg); color: var(--text);
+  outline: none; -webkit-appearance: none; appearance: none;
+  transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field input.err { border-color: var(--red); }
+.field input::placeholder { color: var(--muted); opacity: 0.7; }
+.fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Amount row with currency toggle */
+.amount-row { display: flex; gap: 8px; align-items: flex-start; }
+.amount-row input { flex: 1; }
+.exp-curr-toggle {
+  display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
+}
+.exp-curr-btn {
+  padding: 0 12px; height: 19px; border-radius: 6px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600;
+  color: var(--muted); cursor: pointer; transition: all 0.18s;
+  white-space: nowrap; line-height: 1;
+}
+.exp-curr-btn.active {
+  background: var(--accent); border-color: var(--accent); color: white;
+}
+.exp-curr-btn:not(.active):hover {
+  border-color: var(--accent); color: var(--accent);
+}
+.conv-hint { font-size: 11px; color: var(--bergamo); margin-top: 4px; min-height: 14px; }
+
+.payer-btns { display: flex; gap: 8px; }
+.payer-btn {
+  flex: 1; padding: 9px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; color: var(--muted);
+}
+.payer-btn.active-rina  { border-color: var(--rina);  background: #FFF1EC; color: var(--rina); }
+.payer-btn.active-alisa { border-color: var(--alisa); background: #EFF6FF; color: var(--alisa); }
+
+.add-btn {
+  width: 100%; padding: 12px; background: var(--accent);
+  color: white; border: none; border-radius: 12px;
+  font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 6px; transition: opacity 0.2s, transform 0.1s;
+}
+.add-btn:hover  { opacity: 0.92; }
+.add-btn:active { opacity: 0.85; transform: scale(0.99); }
+.add-btn.busy   { opacity: 0.6; pointer-events: none; }
+
+/* ── EXPENSE LIST ── */
+.section-label {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1.8px;
+  padding: 0 16px; margin: 14px 0 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.expense-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+.expense-item {
+  background: white; border-radius: 14px;
+  padding: 12px 13px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 11px;
+  animation: slideIn 0.25s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.exp-icon {
+  width: 40px; height: 40px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; flex-shrink: 0;
+}
+.cat-food          { background: #FFF3E0; }
+.cat-accommodation { background: #F3E5F5; }
+.cat-transport     { background: #E3F2FD; }
+.cat-activity      { background: #E8F5E9; }
+.cat-shopping      { background: #FCE4EC; }
+.cat-other         { background: #F5F5F5; }
+
+.exp-info { flex: 1; min-width: 0; }
+.exp-desc {
+  font-size: 13px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.exp-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.exp-right { text-align: right; flex-shrink: 0; }
+.exp-amount { font-size: 14px; font-weight: 700; }
+.exp-orig   { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.exp-payer  { font-size: 11px; font-weight: 500; margin-top: 2px; }
+.exp-payer.rina  { color: var(--rina); }
+.exp-payer.alisa { color: var(--alisa); }
+.delete-btn {
+  background: none; border: none; font-size: 14px;
+  cursor: pointer; opacity: 0.3; padding: 5px; flex-shrink: 0;
+  transition: opacity 0.2s; margin-left: 2px;
+}
+.delete-btn:hover { opacity: 0.7; }
+
+.empty-state { text-align: center; padding: 36px 16px; color: var(--muted); }
+.empty-icon  { font-size: 40px; margin-bottom: 10px; }
+.empty-text  { font-size: 13px; line-height: 1.6; }
+
+/* ── SUMMARY ── */
+.summary-card {
+  background: white; margin: 0 16px 12px;
+  border-radius: 16px; padding: 16px;
+  border: 1px solid var(--border);
+}
+.summary-row {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-city {
+  display: flex; align-items: center;
+  gap: 8px; font-size: 13px; font-weight: 500;
+}
+.summary-amounts { font-size: 13px; color: var(--muted); text-align: right; }
+.big-total {
+  font-size: 30px; font-weight: 700;
+  margin: 6px 0 4px;
+}
+.pbar-wrap {
+  background: var(--bg); border-radius: 999px;
+  height: 8px; margin: 12px 0 4px; overflow: hidden;
+}
+.pbar {
+  height: 100%; background: var(--rina);
+  border-radius: 999px; transition: width 0.5s ease;
+}
+.pbar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; font-weight: 600;
+}
+.pbar-rina  { color: var(--rina); }
+.pbar-alisa { color: var(--alisa); }
+
+/* settle card in summary */
+.settle-summary {
+  border-radius: 12px; padding: 13px 15px;
+  font-size: 13px; font-weight: 500;
+  margin-bottom: 0;
+}
+.settle-summary.owes { background: #FEF2F2; color: var(--red);   border: 1px solid #FECACA; }
+.settle-summary.even { background: #F0FDF4; color: var(--green); border: 1px solid #BBF7D0; }
+.settle-summary.empty{ background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+
+/* progress + toast */
+.progress-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 200;
+  background: var(--accent); transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: #1A0F00; color: white; border-radius: 10px;
+  padding: 10px 18px; font-size: 13px; z-index: 300;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: all 0.25s; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.pb { padding-bottom: 24px; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progBar"></div>
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="trip-label">Italy Trip</div>
+      <div class="trip-title">Verona · Bergamo<br>Milan</div>
+      <div class="trip-dates">6 May – 11 May 2025</div>
+    </div>
+    <div class="flag">🇮🇹</div>
+  </div>
+  <div class="curr-toggle">
+    <div>
+      <div class="curr-toggle-label">Currency</div>
+      <div class="curr-pills" style="margin-top:6px">
+        <div class="curr-pill active" id="pill-EUR" onclick="setCurr('EUR')">€ EUR</div>
+        <div class="curr-pill"        id="pill-THB" onclick="setCurr('THB')">฿ THB</div>
+      </div>
+    </div>
+    <button class="sync-btn" onclick="syncData()">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLbl">Sync</span>
+    </button>
+  </div>
+</div>
+
+<!-- BALANCE CARD -->
+<div class="balance-card">
+  <div class="balance-header">
+    <span class="balance-title">Split Overview</span>
+    <span class="balance-amount" id="totalHeader">—</span>
+  </div>
+  <div class="people-row">
+    <div class="person-pill">
+      <div class="person-name rina">Rina</div>
+      <div class="person-amount" id="rinaPaid" style="color:var(--rina)">—</div>
+      <div class="person-sub">paid</div>
+    </div>
+    <div class="person-pill">
+      <div class="person-name alisa">Alisa</div>
+      <div class="person-amount" id="alisaPaid" style="color:var(--alisa)">—</div>
+      <div class="person-sub">paid</div>
+    </div>
+  </div>
+</div>
+
+<div class="settlement" id="settlement"></div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-btn-add"      onclick="switchTab('add')">➕ Add</div>
+  <div class="tab"        id="tab-btn-expenses"  onclick="switchTab('expenses')">🧾 Expenses</div>
+  <div class="tab"        id="tab-btn-summary"   onclick="switchTab('summary')">📊 Summary</div>
+</div>
+
+<!-- ── ADD TAB ── -->
+<div id="tab-add">
+  <div class="form-card">
+    <div class="form-title">New Expense</div>
+
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="desc" placeholder="e.g. Dinner at Osteria Sottoriva…" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Amount</label>
+      <div class="amount-row">
+        <input type="number" id="amount" placeholder="0.00" min="0" step="any" inputmode="decimal">
+        <div class="exp-curr-toggle">
+          <button class="exp-curr-btn active" id="ecBtn-EUR" onclick="setExpCurr('EUR')">€ EUR</button>
+          <button class="exp-curr-btn"        id="ecBtn-THB" onclick="setExpCurr('THB')">฿ THB</button>
+        </div>
+      </div>
+      <div class="conv-hint" id="convHint"></div>
+    </div>
+
+    <div class="fields-row">
+      <div class="field">
+        <label>City</label>
+        <select id="city">
+          <option value="Verona">🏛 Verona</option>
+          <option value="Bergamo">⛰ Bergamo</option>
+          <option value="Milan">🏙 Milan</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="category">
+          <option value="food">🍕 Food & Drink</option>
+          <option value="accommodation">🏨 Accommodation</option>
+          <option value="transport">🚆 Transport</option>
+          <option value="activity">🎭 Activities & Sights</option>
+          <option value="shopping">🛍 Shopping</option>
+          <option value="other">📌 Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Paid by</label>
+      <div class="payer-btns">
+        <button class="payer-btn active-rina" id="btn-rina"  onclick="setPayer('rina')">👤 Rina</button>
+        <button class="payer-btn"             id="btn-alisa" onclick="setPayer('alisa')">👥 Alisa</button>
+      </div>
+    </div>
+
+    <button class="add-btn" id="addBtn" onclick="addExpense()">Add Expense</button>
+  </div>
+</div>
+
+<!-- ── EXPENSES TAB ── -->
+<div id="tab-expenses" style="display:none">
+  <div class="section-label">
+    <span id="expLabel">All Expenses</span>
+  </div>
+  <div class="expense-list" id="expenseList">
+    <div class="empty-state">
+      <div class="empty-icon">🧾</div>
+      <div class="empty-text">No expenses yet.<br>Add your first one!</div>
+    </div>
+  </div>
+  <div class="pb"></div>
+</div>
+
+<!-- ── SUMMARY TAB ── -->
+<div id="tab-summary" style="display:none">
+  <div class="section-label">Overview</div>
+  <div class="summary-card">
+    <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Total Trip Spend</div>
+    <div class="big-total" id="sumTotal">—</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="sumEach">Each owes —</div>
+    <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:50%"></div></div>
+    <div class="pbar-labels">
+      <span class="pbar-rina"  id="pbarRina">Rina 50%</span>
+      <span class="pbar-alisa" id="pbarAlisa">Alisa 50%</span>
+    </div>
+    <div style="height:12px"></div>
+    <div class="settle-summary empty" id="settleSummary">Add expenses to see settlement.</div>
+  </div>
+
+  <div class="section-label">By City</div>
+  <div class="summary-card" id="cityBreakdown"></div>
+
+  <div class="section-label">By Category</div>
+  <div class="summary-card" id="catBreakdown"></div>
+
+  <div class="section-label">By Currency</div>
+  <div class="summary-card" id="currBreakdown"></div>
+
+  <div style="padding:0 16px 24px">
+    <button onclick="syncData()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:12px;background:white;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+      🔄 Refresh from Google Sheets
+    </button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════
+   SHEETDB — Google Sheet as shared DB
+   Both Rina & Alisa read/write the same sheet.
+   URL has the API key baked in — no setup needed.
+═══════════════════════════════════════ */
+const SHEETDB = 'https://sheetdb.io/api/v1/8wtjyfm1yij0s';
+
+/* ═══════════════════════════════════════
+   CURRENCIES
+   Only EUR ↔ THB. Rate stored in localStorage.
+═══════════════════════════════════════ */
+const CURR_CONFIG = {
+  EUR: { sym: '€', label: '€ EUR', rate: 1       },
+  THB: { sym: '฿', label: '฿ THB', rate: 38.5    },
+};
+// How many THB = 1 EUR (editable via rate)
+let THB_RATE = parseFloat(localStorage.getItem('thb_rate') || '38.5');
+
+let displayCurr = localStorage.getItem('displayCurr') || 'EUR';
+
+function toDisplay(amount, fromCurr) {
+  // Convert amount in fromCurr → displayCurr via EUR base
+  const inEUR = fromCurr === 'EUR' ? amount : amount / THB_RATE;
+  return displayCurr === 'EUR' ? inEUR : inEUR * THB_RATE;
+}
+function fmtDisp(n) {
+  const sym = CURR_CONFIG[displayCurr].sym;
+  return sym + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtOrig(amount, curr) {
+  return CURR_CONFIG[curr].sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+const CITY_EMOJIS  = { Verona:'🏛', Bergamo:'⛰', Milan:'🏙' };
+const CITY_COLORS  = { Verona:'var(--verona)', Bergamo:'var(--bergamo)', Milan:'var(--milan)' };
+const CAT_EMOJIS   = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' };
+const CAT_LABELS   = { food:'Food & Drink', accommodation:'Accommodation', transport:'Transport', activity:'Activities', shopping:'Shopping', other:'Other' };
+
+let expenses = [];
+let payer    = 'rina';
+let expCurr  = 'EUR'; // currency chosen per expense in the form
+
+/* ═══════════════════════════════════════
+   CURRENCY UI
+═══════════════════════════════════════ */
+/* ── Display currency (header toggle) ── */
+function setCurr(c) {
+  displayCurr = c;
+  localStorage.setItem('displayCurr', c);
+  document.getElementById('pill-EUR').classList.toggle('active', c === 'EUR');
+  document.getElementById('pill-THB').classList.toggle('active', c === 'THB');
+  updateConvHint();
+  updateAll();
+}
+
+/* ── Expense-entry currency (form toggle) ── */
+function setExpCurr(c) {
+  expCurr = c;
+  document.getElementById('ecBtn-EUR').classList.toggle('active', c === 'EUR');
+  document.getElementById('ecBtn-THB').classList.toggle('active', c === 'THB');
+  updateConvHint();
+}
+
+/* ── Live conversion hint under amount field ── */
+function updateConvHint() {
+  const amt = parseFloat(document.getElementById('amount').value);
+  const el  = document.getElementById('convHint');
+  if (!el) return;
+  if (!amt || isNaN(amt)) { el.textContent = ''; return; }
+  if (expCurr === 'EUR') {
+    el.textContent = `≈ ฿${(amt * THB_RATE).toLocaleString('en-US', { maximumFractionDigits: 0 })} THB`;
+  } else {
+    el.textContent = `≈ €${(amt / THB_RATE).toFixed(2)} EUR`;
+  }
+}
+
+/* ═══════════════════════════════════════
+   SHEETDB HELPERS
+═══════════════════════════════════════ */
+async function dbGet() {
+  const r = await fetch(SHEETDB, { cache: 'no-store' });
+  if (!r.ok) throw new Error('GET ' + r.status);
+  const rows = await r.json();
+  if (!Array.isArray(rows)) throw new Error('Bad response');
+  return rows.map(row => ({
+    id:       Number(row.id),
+    desc:     String(row.desc     || ''),
+    amount:   parseFloat(row.amount)   || 0,
+    currency: String(row.currency || 'EUR'),
+    city:     String(row.city     || 'Verona'),
+    cat:      String(row.cat      || 'other'),
+    payer:    String(row.payer    || 'rina'),
+    date:     String(row.date     || ''),
+  })).filter(r => r.id && r.desc);
+}
+
+async function dbPost(exp) {
+  const r = await fetch(SHEETDB, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [{
+      id: exp.id, desc: exp.desc, amount: exp.amount,
+      currency: exp.currency, city: exp.city,
+      cat: exp.cat, payer: exp.payer, date: exp.date,
+    }]}),
+  });
+  if (!r.ok) throw new Error('POST ' + r.status);
+}
+
+async function dbDelete(id) {
+  const r = await fetch(`${SHEETDB}/id/${id}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error('DELETE ' + r.status);
+}
+
+/* ═══════════════════════════════════════
+   SYNC
+═══════════════════════════════════════ */
+async function syncData() {
+  setSyncState('syncing');
+  try {
+    expenses = await dbGet();
+    updateAll();
+    setSyncState('ok');
+    showToast('✓ Synced with Google Sheets');
+  } catch(e) {
+    console.warn('Sync:', e.message);
+    setSyncState('error');
+    showToast('Sync failed — check connection');
+  }
+}
+function setSyncState(s) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLbl');
+  if (!dot || !lbl) return;
+  dot.className = 'sync-dot' + (s==='syncing'?' syncing': s==='error'?' error':'');
+  lbl.textContent = s==='syncing'?'Syncing…': s==='error'?'Error':'Synced';
+}
+
+/* ═══════════════════════════════════════
+   PAYER
+═══════════════════════════════════════ */
+function setPayer(p) {
+  payer = p;
+  document.getElementById('btn-rina').className  = 'payer-btn' + (p==='rina'  ? ' active-rina'  : '');
+  document.getElementById('btn-alisa').className = 'payer-btn' + (p==='alisa' ? ' active-alisa' : '');
+}
+
+/* ═══════════════════════════════════════
+   ADD EXPENSE
+═══════════════════════════════════════ */
+async function addExpense() {
+  const descEl = document.getElementById('desc');
+  const amtEl  = document.getElementById('amount');
+  const desc   = descEl.value.trim();
+  const amt    = parseFloat(amtEl.value);
+  const city   = document.getElementById('city').value;
+  const cat    = document.getElementById('category').value;
+
+  if (!desc)       { shake(descEl); return; }
+  if (!amt||amt<=0){ shake(amtEl);  return; }
+
+  const exp = {
+    id:       Date.now(),
+    desc, amount: amt,
+    currency: expCurr,
+    city, cat, payer,
+    date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short' }),
+  };
+
+  // Optimistic local add
+  expenses.push(exp);
+  updateAll();
+  descEl.value = '';
+  amtEl.value  = '';
+  document.getElementById('convHint').textContent = '';
+  switchTab('expenses');
+
+  const btn = document.getElementById('addBtn');
+  btn.classList.add('busy'); btn.textContent = 'Saving…';
+  setProgress(40);
+  try {
+    await dbPost(exp);
+    setProgress(100);
+    showToast('✓ Saved to Google Sheets');
+    setSyncState('ok');
+  } catch(e) {
+    console.warn('Save:', e.message);
+    showToast('⚠ Saved locally — sheet sync failed');
+    setSyncState('error');
+  } finally {
+    setProgress(0);
+    btn.classList.remove('busy');
+    btn.textContent = 'Add Expense';
+  }
+}
+
+/* ═══════════════════════════════════════
+   DELETE
+═══════════════════════════════════════ */
+async function deleteExpense(id) {
+  if (!confirm('Remove this expense?')) return;
+  expenses = expenses.filter(e => e.id !== id);
+  updateAll();
+  try {
+    await dbDelete(id);
+    showToast('✓ Deleted');
+  } catch(e) {
+    showToast('⚠ Deleted locally — sheet sync failed');
+    setSyncState('error');
+  }
+}
+
+/* ═══════════════════════════════════════
+   TABS
+═══════════════════════════════════════ */
+function switchTab(tab) {
+  ['add','expenses','summary'].forEach(t => {
+    document.getElementById('tab-'+t).style.display          = t===tab ? 'block' : 'none';
+    document.getElementById('tab-btn-'+t).classList.toggle('active', t===tab);
+  });
+  updateAll();
+}
+
+/* ═══════════════════════════════════════
+   RENDER ALL
+═══════════════════════════════════════ */
+function updateAll() {
+  const rinaT  = expenses.filter(e=>e.payer==='rina') .reduce((s,e)=>s+toDisplay(e.amount,e.currency),0);
+  const alisaT = expenses.filter(e=>e.payer==='alisa').reduce((s,e)=>s+toDisplay(e.amount,e.currency),0);
+  const total  = rinaT + alisaT;
+  const diff   = rinaT - alisaT;
+
+  document.getElementById('totalHeader').textContent = fmtDisp(total);
+  document.getElementById('rinaPaid').textContent    = fmtDisp(rinaT);
+  document.getElementById('alisaPaid').textContent   = fmtDisp(alisaT);
+
+  // Settlement strip
+  const s = document.getElementById('settlement');
+  if (total === 0) {
+    s.style.display = 'none';
+  } else if (Math.abs(diff) < 0.01) {
+    s.className = 'settlement even'; s.style.display = 'block';
+    s.textContent = '✓ All even! No one owes anything.';
+  } else if (diff > 0) {
+    s.className = 'settlement owes'; s.style.display = 'block';
+    s.textContent = `Alisa owes Rina ${fmtDisp(diff/2)} to settle up`;
+  } else {
+    s.className = 'settlement owes'; s.style.display = 'block';
+    s.textContent = `Rina owes Alisa ${fmtDisp(Math.abs(diff)/2)} to settle up`;
+  }
+
+  renderExpenses();
+  renderSummary(rinaT, alisaT, total, diff);
+}
+
+/* ── Expense List ── */
+function renderExpenses() {
+  const el  = document.getElementById('expenseList');
+  const lbl = document.getElementById('expLabel');
+  if (!el) return;
+  lbl.textContent = expenses.length ? `All Expenses (${expenses.length})` : 'All Expenses';
+
+  if (!expenses.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🧾</div>
+      <div class="empty-text">No expenses yet.<br>Add your first one!</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = [...expenses].reverse().map((e, i) => {
+    const disp     = toDisplay(e.amount, e.currency);
+    const showOrig = e.currency !== displayCurr;
+    const whoLabel = e.payer === 'rina' ? 'Rina paid' : 'Alisa paid';
+    return `<div class="expense-item" style="animation-delay:${Math.min(i,8)*0.03}s">
+      <div class="exp-icon cat-${e.cat}">${CAT_EMOJIS[e.cat]||'📌'}</div>
+      <div class="exp-info">
+        <div class="exp-desc">${esc(e.desc)}</div>
+        <div class="exp-meta">
+          <span style="color:${CITY_COLORS[e.city]||'#999'};font-weight:600">${e.city}</span>
+          &nbsp;·&nbsp;${CAT_LABELS[e.cat]||e.cat}&nbsp;·&nbsp;${e.date}
+        </div>
+      </div>
+      <div class="exp-right">
+        <div class="exp-amount">${fmtDisp(disp)}</div>
+        ${showOrig ? `<div class="exp-orig">${fmtOrig(e.amount,e.currency)}</div>` : ''}
+        <div class="exp-payer ${e.payer}">${whoLabel}</div>
+      </div>
+      <button class="delete-btn" onclick="deleteExpense(${e.id})" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ── Summary ── */
+function renderSummary(rinaT, alisaT, total, diff) {
+  document.getElementById('sumTotal').textContent = fmtDisp(total);
+  document.getElementById('sumEach').textContent  = total > 0 ? `Each person's share: ${fmtDisp(total/2)}` : 'Each owes —';
+
+  const rp = total > 0 ? Math.round(rinaT/total*100) : 50;
+  document.getElementById('pbar').style.width     = rp + '%';
+  document.getElementById('pbarRina').textContent  = `Rina ${rp}%`;
+  document.getElementById('pbarAlisa').textContent = `Alisa ${100-rp}%`;
+
+  // Settlement in summary
+  const ss = document.getElementById('settleSummary');
+  if (total === 0) {
+    ss.className = 'settle-summary empty';
+    ss.textContent = 'Add expenses to see settlement.';
+  } else if (Math.abs(diff) < 0.01) {
+    ss.className = 'settle-summary even';
+    ss.textContent = '✓ All settled — perfectly even!';
+  } else if (diff > 0) {
+    ss.className = 'settle-summary owes';
+    ss.textContent = `Alisa should pay Rina ${fmtDisp(diff/2)}`;
+  } else {
+    ss.className = 'settle-summary owes';
+    ss.textContent = `Rina should pay Alisa ${fmtDisp(Math.abs(diff)/2)}`;
+  }
+
+  // City breakdown
+  const cityEl = document.getElementById('cityBreakdown');
+  cityEl.innerHTML = ['Verona','Bergamo','Milan'].map(city => {
+    const items = expenses.filter(e=>e.city===city);
+    const t = items.reduce((s,e)=>s+toDisplay(e.amount,e.currency),0);
+    return `<div class="summary-row">
+      <div class="summary-city">
+        <span style="width:10px;height:10px;border-radius:50%;background:${CITY_COLORS[city]};display:inline-block;flex-shrink:0"></span>
+        ${CITY_EMOJIS[city]} ${city}
+      </div>
+      <div class="summary-amounts">
+        ${fmtDisp(t)}
+        <span style="opacity:0.6"> (${items.length} item${items.length!==1?'s':''})</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Category breakdown
+  const catEl   = document.getElementById('catBreakdown');
+  const catRows = Object.keys(CAT_EMOJIS)
+    .map(c => ({ c, t: expenses.filter(e=>e.cat===c).reduce((s,e)=>s+toDisplay(e.amount,e.currency),0) }))
+    .filter(r => r.t > 0).sort((a,b) => b.t - a.t);
+  catEl.innerHTML = catRows.length
+    ? catRows.map(r => `<div class="summary-row">
+        <div class="summary-city">${CAT_EMOJIS[r.c]} ${CAT_LABELS[r.c]}</div>
+        <div class="summary-amounts">${fmtDisp(r.t)}</div>
+      </div>`).join('')
+    : `<div style="color:var(--muted);font-size:13px;padding:8px 0;text-align:center">No expenses yet</div>`;
+
+  // Currency breakdown
+  const currEl  = document.getElementById('currBreakdown');
+  const used    = [...new Set(expenses.map(e=>e.currency))];
+  if (!used.length) {
+    currEl.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:8px 0;text-align:center">No expenses yet</div>`;
+  } else {
+    currEl.innerHTML = used.map(c => {
+      const items   = expenses.filter(e=>e.currency===c);
+      const origTot = items.reduce((s,e)=>s+e.amount, 0);
+      const dispTot = items.reduce((s,e)=>s+toDisplay(e.amount,c), 0);
+      const sym     = CURR_CONFIG[c]?.sym || c;
+      return `<div class="summary-row">
+        <div class="summary-city">${c==='EUR'?'🇪🇺':'🇹🇭'} ${c === 'EUR' ? 'Euro' : 'Thai Baht'}</div>
+        <div style="text-align:right">
+          <div class="summary-amounts" style="color:var(--text);font-weight:600">
+            ${sym}${origTot.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+          </div>
+          ${c!==displayCurr ? `<div style="font-size:11px;color:var(--muted)">≈ ${fmtDisp(dispTot)}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* ═══════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════ */
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function shake(el) {
+  el.classList.add('err');
+  setTimeout(() => el.classList.remove('err'), 700);
+}
+let _tt;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('show'), 3000);
+}
+let _pt;
+function setProgress(pct) {
+  const el = document.getElementById('progBar');
+  if (!el) return;
+  el.style.transform = `scaleX(${pct/100})`;
+  clearTimeout(_pt);
+  if (pct >= 100) _pt = setTimeout(() => { el.style.transform = 'scaleX(0)'; }, 600);
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function () {
+  // Apply saved display currency
+  setCurr(displayCurr);
+  // Render immediately (empty state)
+  updateAll();
+  // Live hint as user types amount
+  document.getElementById('amount').addEventListener('input', updateConvHint);
+  // Fetch from sheet in background
+  syncData();
+});
+</script>
+</body>
+</html>
