@@ -35,7 +35,6 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* ── HEADER ── */
 .header {
   background: var(--accent);
   color: white;
@@ -72,7 +71,6 @@ body {
 .trip-dates { font-size: 12px; opacity: 0.75; margin-top: 6px; }
 .flag { font-size: 36px; position: relative; z-index: 1; }
 
-/* Currency toggle in header */
 .curr-toggle {
   position: relative; z-index: 1;
   display: flex; align-items: center; gap: 8px;
@@ -119,7 +117,6 @@ body {
 .sync-dot.error   { background: #f87171; }
 @keyframes pulse { from{opacity:1} to{opacity:0.3} }
 
-/* ── BALANCE CARD ── */
 .balance-card {
   background: white; margin: 14px 16px;
   border-radius: 16px; padding: 16px;
@@ -152,7 +149,6 @@ body {
 .person-amount { font-size: 20px; font-weight: 700; }
 .person-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
 
-/* ── SETTLEMENT ── */
 .settlement {
   margin: 0 16px 6px; border-radius: 12px;
   padding: 11px 14px; font-size: 13px; font-weight: 500;
@@ -161,7 +157,6 @@ body {
 .settlement.owes { background: #FEF2F2; color: var(--red);   border: 1px solid #FECACA; }
 .settlement.even { background: #F0FDF4; color: var(--green); border: 1px solid #BBF7D0; }
 
-/* ── TABS ── */
 .tabs {
   display: flex; margin: 0 16px;
   background: white; border-radius: 12px;
@@ -175,7 +170,6 @@ body {
 }
 .tab.active { background: var(--accent); color: white; }
 
-/* ── FORM ── */
 .form-card {
   background: white; margin: 12px 16px;
   border-radius: 16px; padding: 16px;
@@ -193,7 +187,7 @@ body {
   border: 1.5px solid var(--border); border-radius: 10px;
   font-family: 'Poppins', sans-serif; font-size: 13px;
   background: var(--bg); color: var(--text);
-  outline: none; -webkit-appearance: none; appearance: none;
+  outline: none;
   transition: border-color 0.2s;
 }
 .field input:focus, .field select:focus { border-color: var(--accent); }
@@ -201,7 +195,6 @@ body {
 .field input::placeholder { color: var(--muted); opacity: 0.7; }
 .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-/* Amount row with currency toggle */
 .amount-row { display: flex; gap: 8px; align-items: flex-start; }
 .amount-row input { flex: 1; }
 .exp-curr-toggle {
@@ -242,7 +235,6 @@ body {
 .add-btn:active { opacity: 0.85; transform: scale(0.99); }
 .add-btn.busy   { opacity: 0.6; pointer-events: none; }
 
-/* ── EXPENSE LIST ── */
 .section-label {
   font-size: 10px; font-weight: 700; color: var(--muted);
   text-transform: uppercase; letter-spacing: 1.8px;
@@ -292,7 +284,6 @@ body {
 .empty-icon  { font-size: 40px; margin-bottom: 10px; }
 .empty-text  { font-size: 13px; line-height: 1.6; }
 
-/* ── SUMMARY ── */
 .summary-card {
   background: white; margin: 0 16px 12px;
   border-radius: 16px; padding: 16px;
@@ -360,7 +351,6 @@ body {
 <div class="progress-bar" id="progBar"></div>
 <div class="toast" id="toast"></div>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-top">
     <div>
@@ -385,7 +375,6 @@ body {
   </div>
 </div>
 
-<!-- BALANCE CARD -->
 <div class="balance-card">
   <div class="balance-header">
     <span class="balance-title">Split Overview</span>
@@ -407,14 +396,12 @@ body {
 
 <div class="settlement" id="settlement"></div>
 
-<!-- TABS -->
 <div class="tabs">
   <div class="tab active" id="tab-btn-add"      onclick="switchTab('add')">➕ Add</div>
   <div class="tab"        id="tab-btn-expenses"  onclick="switchTab('expenses')">🧾 Expenses</div>
   <div class="tab"        id="tab-btn-summary"   onclick="switchTab('summary')">📊 Summary</div>
 </div>
 
-<!-- ── ADD TAB ── -->
 <div id="tab-add">
   <div class="form-card">
     <div class="form-title">New Expense</div>
@@ -465,7 +452,6 @@ body {
   </div>
 </div>
 
-<!-- ── EXPENSES TAB ── -->
 <div id="tab-expenses" style="display:none">
   <div class="section-label">
     <span id="expLabel">All Expenses</span>
@@ -479,7 +465,6 @@ body {
   <div class="pb"></div>
 </div>
 
-<!-- ── SUMMARY TAB ── -->
 <div id="tab-summary" style="display:none">
   <div class="section-label">Overview</div>
   <div class="summary-card">
@@ -510,36 +495,34 @@ body {
 <script>
 'use strict';
 
-/* ========= SHEETDB ENDPOINT (same shared sheet) ========= */
 const SHEETDB = 'https://sheetdb.io/api/v1/8wtjyfm1yij0s';
 
-/* ========= CURRENCY CONFIG ========= */
 let THB_RATE = parseFloat(localStorage.getItem('thb_rate') || '38.5');
 let displayCurr = localStorage.getItem('displayCurr') || 'EUR';
+let expenses = [];
+let payer = 'rina';
+let expCurr = 'EUR';
 
 function toDisplay(amount, fromCurr) {
   const inEUR = fromCurr === 'EUR' ? amount : amount / THB_RATE;
   return displayCurr === 'EUR' ? inEUR : inEUR * THB_RATE;
 }
+
 function fmtDisp(n) {
   const sym = displayCurr === 'EUR' ? '€' : '฿';
   return sym + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
 function fmtOrig(amount, curr) {
   const sym = curr === 'EUR' ? '€' : '฿';
   return sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-/* ========= GLOBAL STATE ========= */
-let expenses = [];
-let payer = 'rina';
-let expCurr = 'EUR';
-
-/* ========= LOCALSTORAGE CACHE (FIX: persist & restore correctly) ========= */
 function saveCache() {
   try {
     localStorage.setItem('it_expenses', JSON.stringify(expenses));
-  } catch(e) {}
+    console.log('Cache saved, expenses count:', expenses.length);
+  } catch(e) { console.warn('Save cache error:', e); }
 }
 
 function loadCache() {
@@ -547,24 +530,17 @@ function loadCache() {
     const raw = localStorage.getItem('it_expenses');
     if (raw && raw !== 'undefined' && raw !== 'null') {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) expenses = parsed;
-      else expenses = [];
-    } else {
-      expenses = [];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        expenses = parsed;
+        console.log('Cache loaded, expenses count:', expenses.length);
+        return true;
+      }
     }
-  } catch(e) { expenses = []; }
-  // ensure every expense has valid fields
-  expenses = expenses.filter(e => e && typeof e === 'object' && e.id && e.desc).map(e => ({
-    ...e,
-    amount: typeof e.amount === 'number' ? e.amount : 0,
-    currency: e.currency === 'THB' ? 'THB' : 'EUR',
-    city: e.city || 'Verona',
-    cat: e.cat || 'other',
-    payer: (e.payer === 'alisa') ? 'alisa' : 'rina'
-  }));
+  } catch(e) { console.warn('Load cache error:', e); }
+  expenses = [];
+  return false;
 }
 
-/* ========= SHEETDB OPERATIONS ========= */
 async function dbGet() {
   const r = await fetch(SHEETDB, { cache: 'no-store' });
   if (!r.ok) throw new Error('GET ' + r.status);
@@ -587,17 +563,18 @@ async function dbPost(exp) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ data: [{
-      id: exp.id,
-      desc: exp.desc,
-      amount: exp.amount,
+      id:       exp.id,
+      desc:     exp.desc,
+      amount:   exp.amount,
       currency: exp.currency,
-      city: exp.city,
-      cat: exp.cat,
-      name: exp.payer,
-      date: exp.date,
+      city:     exp.city,
+      cat:      exp.cat,
+      name:     exp.payer,
+      date:     exp.date,
     }] }),
   });
   if (!r.ok) throw new Error('POST ' + r.status);
+  return true;
 }
 
 async function dbDelete(id) {
@@ -605,34 +582,37 @@ async function dbDelete(id) {
   if (!r.ok) throw new Error('DELETE ' + r.status);
 }
 
-/* ========= SYNC (with proper cache refresh) ========= */
 async function syncData() {
   setSyncState('syncing');
+  showToast('Syncing with Google Sheets...');
+  
   try {
     const fresh = await dbGet();
-    if (fresh.length > 0 || expenses.length === 0) {
+    console.log('Fetched from sheet:', fresh.length, 'expenses');
+    
+    if (fresh.length > 0) {
+      // Replace local data with sheet data (sheet is source of truth)
       expenses = fresh;
       saveCache();
+      updateAll();
+      showToast(`✓ Synced ${expenses.length} expenses from Google Sheets`);
+      setSyncState('ok');
+    } else if (expenses.length > 0) {
+      // Sheet is empty but we have local data - keep local
+      showToast(`⚠ Sheet empty, keeping ${expenses.length} local expenses`);
+      setSyncState('error');
     } else {
-      // if remote empty but local has data, keep local but try to push (avoid data loss)
-      // but we just merge: local wins for safety? Actually we trust remote most up-to-date.
-      // but to avoid wiping out offline adds: we smart merge? simpler: use remote if remote has any row or local empty.
-      if (fresh.length >= expenses.length) {
-        expenses = fresh;
-        saveCache();
-      } else {
-        // keep local, but we will not overwrite remote. just update UI.
-      }
+      showToast('✓ No expenses found');
+      setSyncState('ok');
     }
-    updateAll();
-    setSyncState('ok');
-    showToast('✓ Synced with Google Sheets');
   } catch(e) {
-    console.warn('Sync failed:', e);
+    console.error('Sync error:', e);
+    showToast('⚠ Sync failed - using cached data');
     setSyncState('error');
-    showToast('⚠ Sync failed — showing cached data (changes safe)');
-    // still show cached data
-    updateAll();
+    if (expenses.length === 0) {
+      loadCache();
+      updateAll();
+    }
   }
 }
 
@@ -640,15 +620,14 @@ function setSyncState(s) {
   const dot = document.getElementById('syncDot');
   const lbl = document.getElementById('syncLbl');
   if (!dot) return;
-  dot.className = 'sync-dot' + (s==='syncing'?' syncing': s==='error'?' error':'');
-  lbl.textContent = s==='syncing'?'Syncing…': s==='error'?'Error':'Synced';
+  dot.className = 'sync-dot' + (s === 'syncing' ? ' syncing' : s === 'error' ? ' error' : '');
+  lbl.textContent = s === 'syncing' ? 'Syncing…' : s === 'error' ? 'Error' : 'Synced';
 }
 
-/* ========= UI helper ========= */
 function setPayer(p) {
   payer = p;
-  document.getElementById('btn-rina').className = 'payer-btn' + (p==='rina' ? ' active-rina' : '');
-  document.getElementById('btn-alisa').className = 'payer-btn' + (p==='alisa' ? ' active-alisa' : '');
+  document.getElementById('btn-rina').className = 'payer-btn' + (p === 'rina' ? ' active-rina' : '');
+  document.getElementById('btn-alisa').className = 'payer-btn' + (p === 'alisa' ? ' active-alisa' : '');
 }
 
 function setCurr(c) {
@@ -679,7 +658,6 @@ function updateConvHint() {
   }
 }
 
-/* ========= ADD EXPENSE (optimistic + cache) ========= */
 async function addExpense() {
   const descEl = document.getElementById('desc');
   const amtEl = document.getElementById('amount');
@@ -702,26 +680,27 @@ async function addExpense() {
     date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
   };
 
-  // Optimistic local update
-  expenses.unshift(newExp);    // add to beginning (latest first)
-  saveCache();                 // 🔥 CRITICAL: save after each mutation
+  // Add to local state immediately
+  expenses.unshift(newExp);
+  saveCache();
   updateAll();
 
-  // reset form
   descEl.value = '';
   amtEl.value = '';
   document.getElementById('convHint').textContent = '';
   switchTab('expenses');
 
   const btn = document.getElementById('addBtn');
-  btn.classList.add('busy'); btn.textContent = 'Saving…';
+  btn.classList.add('busy'); 
+  btn.textContent = 'Saving…';
+  
   try {
     await dbPost(newExp);
     showToast('✓ Saved to Google Sheets');
     setSyncState('ok');
   } catch(e) {
     console.warn('Sheet save error:', e);
-    showToast('⚠ Saved locally, but sheet failed. Will retry later.');
+    showToast('⚠ Saved locally, but sheet sync failed');
     setSyncState('error');
   } finally {
     btn.classList.remove('busy');
@@ -729,12 +708,13 @@ async function addExpense() {
   }
 }
 
-/* ========= DELETE ========= */
 async function deleteExpense(id) {
   if (!confirm('Remove this expense?')) return;
+  
   expenses = expenses.filter(e => e.id !== id);
-  saveCache();   // persist deletion
+  saveCache();
   updateAll();
+  
   try {
     await dbDelete(id);
     showToast('✓ Removed from sheet');
@@ -744,7 +724,6 @@ async function deleteExpense(id) {
   }
 }
 
-/* ========= TABS ========= */
 function switchTab(tab) {
   ['add', 'expenses', 'summary'].forEach(t => {
     const el = document.getElementById('tab-' + t);
@@ -752,10 +731,9 @@ function switchTab(tab) {
     const btn = document.getElementById('tab-btn-' + t);
     if (btn) btn.classList.toggle('active', t === tab);
   });
-  updateAll(); // refresh content each tab switch
+  updateAll();
 }
 
-/* ========= RENDER EVERYTHING ========= */
 function updateAll() {
   const rinaT = expenses.reduce((s, e) => s + (e.payer === 'rina' ? toDisplay(e.amount, e.currency) : 0), 0);
   const alisaT = expenses.reduce((s, e) => s + (e.payer === 'alisa' ? toDisplay(e.amount, e.currency) : 0), 0);
@@ -790,18 +768,27 @@ function updateAll() {
 function renderExpensesList() {
   const container = document.getElementById('expenseList');
   if (!container) return;
+  
   if (!expenses.length) {
     container.innerHTML = `<div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">No expenses yet.<br>Add your first one!</div></div>`;
+    document.getElementById('expLabel').textContent = 'All Expenses';
     return;
   }
-  container.innerHTML = [...expenses].map(e => {
+  
+  document.getElementById('expLabel').textContent = `All Expenses (${expenses.length})`;
+  
+  container.innerHTML = expenses.map(e => {
     const disp = toDisplay(e.amount, e.currency);
     const showOrig = e.currency !== displayCurr;
+    const catEmoji = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' };
+    const catLabel = { food:'Food', accommodation:'Hotel', transport:'Transit', activity:'Sight', shopping:'Shop', other:'Other' };
+    const cityColors = { Verona:'#FF6B6B', Bergamo:'#4ECDC4', Milan:'#A78BFA' };
+    
     return `<div class="expense-item">
-      <div class="exp-icon cat-${e.cat}">${getCatEmoji(e.cat)}</div>
+      <div class="exp-icon cat-${e.cat}">${catEmoji[e.cat] || '📌'}</div>
       <div class="exp-info">
         <div class="exp-desc">${escapeHtml(e.desc)}</div>
-        <div class="exp-meta"><span style="font-weight:500">${e.city}</span> · ${getCatLabel(e.cat)} · ${e.date || ''}</div>
+        <div class="exp-meta"><span style="color:${cityColors[e.city]};font-weight:600">${e.city}</span> · ${catLabel[e.cat]} · ${e.date || ''}</div>
       </div>
       <div class="exp-right">
         <div class="exp-amount">${fmtDisp(disp)}</div>
@@ -836,7 +823,6 @@ function renderSummary(rinaT, alisaT, total, diff) {
     ss.textContent = `Rina should pay Alisa ${fmtDisp(Math.abs(diff) / 2)}`;
   }
 
-  // City breakdown
   const cities = ['Verona', 'Bergamo', 'Milan'];
   const cityMap = { Verona: '🏛', Bergamo: '⛰', Milan: '🏙' };
   const cityColors = { Verona: '#FF6B6B', Bergamo: '#4ECDC4', Milan: '#A78BFA' };
@@ -846,14 +832,12 @@ function renderSummary(rinaT, alisaT, total, diff) {
     return `<div class="summary-row"><div class="summary-city"><span style="width:10px;height:10px;border-radius:50%;background:${cityColors[city]};display:inline-block"></span> ${cityMap[city]} ${city}</div><div class="summary-amounts">${fmtDisp(sum)} <span style="opacity:0.6">(${items.length})</span></div></div>`;
   }).join('');
 
-  // Category
   const cats = ['food','accommodation','transport','activity','shopping','other'];
   const catLabels = { food:'Food & Drink', accommodation:'Accommodation', transport:'Transport', activity:'Activities', shopping:'Shopping', other:'Other' };
   const catEmoji = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' };
   const catRows = cats.map(c => ({ c, total: expenses.filter(e=>e.cat===c).reduce((s,e)=>s+toDisplay(e.amount,e.currency),0) })).filter(r=>r.total>0);
   document.getElementById('catBreakdown').innerHTML = catRows.length ? catRows.map(r => `<div class="summary-row"><div class="summary-city">${catEmoji[r.c]} ${catLabels[r.c]}</div><div class="summary-amounts">${fmtDisp(r.total)}</div></div>`).join('') : `<div style="color:var(--muted);text-align:center;padding:8px">No expenses</div>`;
 
-  // Currency breakdown
   const usedCurr = [...new Set(expenses.map(e=>e.currency))];
   document.getElementById('currBreakdown').innerHTML = usedCurr.length ? usedCurr.map(c => {
     const items = expenses.filter(e=>e.currency===c);
@@ -864,23 +848,60 @@ function renderSummary(rinaT, alisaT, total, diff) {
   }).join('') : `<div style="color:var(--muted);text-align:center;padding:8px">No expenses</div>`;
 }
 
-function getCatEmoji(cat) { const m = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' }; return m[cat] || '📌'; }
-function getCatLabel(cat) { const m = { food:'Food', accommodation:'Hotel', transport:'Transit', activity:'Sight', shopping:'Shop', other:'Other' }; return m[cat] || cat; }
-function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-function shake(el) { el.classList.add('err'); setTimeout(()=> el.classList.remove('err'), 600); }
-function showToast(msg) { const t = document.getElementById('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2800); }
+function escapeHtml(str) { 
+  return String(str).replace(/[&<>]/g, function(m){ 
+    if(m==='&') return '&amp;'; 
+    if(m==='<') return '&lt;'; 
+    if(m==='>') return '&gt;'; 
+    return m;
+  }); 
+}
 
-/* ========= INIT ========= */
+function shake(el) { 
+  el.classList.add('err'); 
+  setTimeout(()=> el.classList.remove('err'), 600); 
+}
+
+function showToast(msg) { 
+  const t = document.getElementById('toast'); 
+  if(!t) return; 
+  t.textContent = msg; 
+  t.classList.add('show'); 
+  setTimeout(()=> t.classList.remove('show'), 2800); 
+}
+
+function setProgress(pct) {
+  const el = document.getElementById('progBar');
+  if (!el) return;
+  el.style.transform = `scaleX(${pct/100})`;
+  if (pct >= 100) setTimeout(() => { el.style.transform = 'scaleX(0)'; }, 600);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  // always load cache first -> instant UI
-  loadCache();
-  updateAll();                // ✅ immediate summary + expenses
+  console.log('App starting...');
+  
+  // Load cached expenses first (instant display)
+  const hasCache = loadCache();
+  console.log('Cache loaded, has data:', hasCache, 'count:', expenses.length);
+  
+  // Initialize UI
   setCurr(displayCurr);
   setPayer('rina');
   setExpCurr('EUR');
-  document.getElementById('amount').addEventListener('input', updateConvHint);
-  // background sync after UI ready
-  setTimeout(() => syncData(), 150);
+  
+  // Add input listener for conversion hint
+  const amountInput = document.getElementById('amount');
+  if (amountInput) {
+    amountInput.addEventListener('input', updateConvHint);
+  }
+  
+  // Update UI with cached data (if any)
+  updateAll();
+  
+  // Then sync with sheet in background
+  setTimeout(() => {
+    syncData();
+  }, 500);
 });
 </script>
 </body>
