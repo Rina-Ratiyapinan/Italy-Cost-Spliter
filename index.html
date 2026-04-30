@@ -344,26 +344,41 @@ body {
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 .pb { padding-bottom: 24px; }
-.loading-overlay {
+
+.loading-screen {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5); z-index: 999;
+  background: var(--bg); z-index: 1000;
   display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
+  flex-direction: column;
+  transition: opacity 0.3s ease;
+}
+.loading-screen.hide {
+  opacity: 0;
+  pointer-events: none;
 }
 .loading-spinner {
-  background: white; padding: 20px 30px;
-  border-radius: 20px; text-align: center;
-}
-.loading-spinner .spinner {
-  width: 40px; height: 40px; border: 3px solid var(--border);
-  border-top-color: var(--accent); border-radius: 50%;
+  width: 50px; height: 50px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin: 0 auto 12px;
+  margin-bottom: 16px;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-text {
+  color: var(--muted);
+  font-size: 14px;
+}
 </style>
 </head>
 <body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Loading from Google Sheets...</div>
+</div>
 
 <div class="progress-bar" id="progBar"></div>
 <div class="toast" id="toast"></div>
@@ -385,7 +400,7 @@ body {
         <div class="curr-pill"        id="pill-THB" onclick="setCurr('THB')">฿ THB</div>
       </div>
     </div>
-    <button class="sync-btn" onclick="syncData(true)">
+    <button class="sync-btn" onclick="forceRefresh()">
       <div class="sync-dot" id="syncDot"></div>
       <span id="syncLbl">Synced</span>
     </button>
@@ -503,8 +518,8 @@ body {
   <div class="section-label">By Currency</div>
   <div class="summary-card" id="currBreakdown"></div>
   <div style="padding:0 16px 24px">
-    <button onclick="syncData(true)" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:12px;background:white;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
-      🔄 Refresh from Google Sheets
+    <button onclick="forceRefresh()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:12px;background:white;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+      🔄 Force Refresh from Google Sheets
     </button>
   </div>
 </div>
@@ -519,7 +534,6 @@ let displayCurr = localStorage.getItem('displayCurr') || 'EUR';
 let expenses = [];
 let payer = 'rina';
 let expCurr = 'EUR';
-let isLoading = false;
 
 function toDisplay(amount, fromCurr) {
   const inEUR = fromCurr === 'EUR' ? amount : amount / THB_RATE;
@@ -536,34 +550,20 @@ function fmtOrig(amount, curr) {
   return sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Cache is now just for offline fallback - Google Sheets is primary source
-function saveCache() {
-  try {
-    localStorage.setItem('it_expenses_backup', JSON.stringify(expenses));
-  } catch(e) { }
-}
-
-function loadCache() {
-  try {
-    const raw = localStorage.getItem('it_expenses_backup');
-    if (raw && raw !== 'undefined' && raw !== 'null') {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        expenses = parsed;
-        return true;
-      }
-    }
-  } catch(e) { }
-  return false;
-}
-
-async function fetchFromSheet() {
-  const response = await fetch(SHEETDB, { cache: 'no-store' });
-  if (!response.ok) throw new Error('HTTP ' + response.status);
+// Fetch ALL data from Google Sheets
+async function fetchAllFromSheet() {
+  console.log('Fetching from SheetDB...');
+  const response = await fetch(SHEETDB, { 
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache' }
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const rows = await response.json();
-  if (!Array.isArray(rows)) throw new Error('Invalid response');
+  console.log('Raw response from sheet:', rows);
   
-  return rows.map(row => ({
+  if (!Array.isArray(rows)) throw new Error('Invalid response format');
+  
+  const expenses_list = rows.map(row => ({
     id:       Number(row.id),
     desc:     String(row.desc || ''),
     amount:   parseFloat(row.amount) || 0,
@@ -572,14 +572,16 @@ async function fetchFromSheet() {
     cat:      String(row.cat || 'other'),
     payer:    String(row.name || row.payer || 'rina'),
     date:     String(row.date || ''),
-  })).filter(r => r.id && r.desc);
+  })).filter(r => r.id && r.desc && !isNaN(r.id));
+  
+  console.log('Parsed expenses:', expenses_list.length);
+  return expenses_list;
 }
 
+// Add expense to sheet
 async function addToSheet(exp) {
-  const response = await fetch(SHEETDB, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ data: [{
+  const payload = {
+    data: [{
       id:       exp.id,
       desc:     exp.desc,
       amount:   exp.amount,
@@ -588,59 +590,86 @@ async function addToSheet(exp) {
       cat:      exp.cat,
       name:     exp.payer,
       date:     exp.date,
-    }] }),
+    }]
+  };
+  
+  console.log('Sending to sheet:', payload);
+  
+  const response = await fetch(SHEETDB, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error('POST failed');
+  
+  if (!response.ok) throw new Error(`POST failed: ${response.status}`);
+  const result = await response.json();
+  console.log('Sheet response:', result);
   return true;
 }
 
+// Delete expense from sheet
 async function deleteFromSheet(id) {
   const response = await fetch(`${SHEETDB}/id/${id}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error('DELETE failed');
+  if (!response.ok) throw new Error(`DELETE failed: ${response.status}`);
+  return true;
 }
 
-async function syncData(showToastMsg = false) {
-  if (isLoading) return;
-  isLoading = true;
-  setSyncState('syncing');
-  if (showToastMsg) showToast('Loading from Google Sheets...');
+// Force refresh from Google Sheets (shows loading)
+async function forceRefresh() {
+  const loadingScreen = document.getElementById('loadingScreen');
+  loadingScreen.classList.remove('hide');
   
   try {
-    const sheetData = await fetchFromSheet();
-    console.log('Sheet data loaded:', sheetData.length, 'expenses');
+    await loadDataFromSheet();
+    showToast(`✓ Loaded ${expenses.length} expenses from Google Sheets`);
+  } catch(e) {
+    console.error('Refresh error:', e);
+    showToast('⚠ Failed to load from Google Sheets');
+  } finally {
+    setTimeout(() => {
+      loadingScreen.classList.add('hide');
+    }, 500);
+  }
+}
+
+// Main data loader
+async function loadDataFromSheet() {
+  try {
+    const sheetData = await fetchAllFromSheet();
     
     if (sheetData.length > 0) {
-      expenses = sheetData.sort((a, b) => b.id - a.id); // newest first
-      saveCache(); // backup for offline
+      expenses = sheetData.sort((a, b) => b.id - a.id);
+      console.log('Expenses loaded:', expenses.length);
+      
+      // Save to localStorage as backup only
+      localStorage.setItem('it_expenses_backup', JSON.stringify(expenses));
+      
       updateAll();
       setSyncState('ok');
-      if (showToastMsg) showToast(`✓ Loaded ${expenses.length} expenses from sheet`);
-    } else if (expenses.length === 0) {
-      // Try cache if sheet is empty
-      if (loadCache()) {
+      return true;
+    } else {
+      // Try to load from backup if sheet is empty
+      const backup = localStorage.getItem('it_expenses_backup');
+      if (backup) {
+        expenses = JSON.parse(backup);
         updateAll();
-        showToast(`⚠ Using cached data (${expenses.length} expenses)`);
-      } else {
-        updateAll();
-        if (showToastMsg) showToast('No expenses found');
+        console.log('Using backup data');
       }
       setSyncState('error');
-    } else {
-      updateAll();
-      setSyncState('ok');
+      return false;
     }
   } catch(e) {
-    console.error('Sync error:', e);
-    if (loadCache()) {
+    console.error('Load error:', e);
+    
+    // Try backup
+    const backup = localStorage.getItem('it_expenses_backup');
+    if (backup) {
+      expenses = JSON.parse(backup);
       updateAll();
-      showToast(`⚠ Offline mode - showing ${expenses.length} cached expenses`);
-    } else {
-      updateAll();
-      if (showToastMsg) showToast('⚠ Failed to load from Google Sheets');
+      showToast('⚠ Using cached data - check your connection');
     }
     setSyncState('error');
-  } finally {
-    isLoading = false;
+    throw e;
   }
 }
 
@@ -708,7 +737,7 @@ async function addExpense() {
     date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
   };
 
-  // Optimistic UI update
+  // Optimistic UI
   expenses.unshift(newExp);
   updateAll();
 
@@ -723,12 +752,13 @@ async function addExpense() {
   
   try {
     await addToSheet(newExp);
-    saveCache();
     showToast('✓ Saved to Google Sheets');
     setSyncState('ok');
+    // Refresh to ensure we have latest data
+    await loadDataFromSheet();
   } catch(e) {
-    console.warn('Sheet save error:', e);
-    showToast('⚠ Saved locally only - will sync when online');
+    console.error('Save error:', e);
+    showToast('⚠ Saved locally only - will retry');
     setSyncState('error');
   } finally {
     btn.classList.remove('busy');
@@ -739,15 +769,15 @@ async function addExpense() {
 async function deleteExpense(id) {
   if (!confirm('Remove this expense?')) return;
   
-  const deletedExp = expenses.find(e => e.id === id);
   expenses = expenses.filter(e => e.id !== id);
   updateAll();
   
   try {
     await deleteFromSheet(id);
-    saveCache();
     showToast('✓ Deleted from sheet');
+    setSyncState('ok');
   } catch(e) {
+    console.error('Delete error:', e);
     showToast('⚠ Removed locally only');
     setSyncState('error');
   }
@@ -899,7 +929,7 @@ function showToast(msg) {
   setTimeout(()=> t.classList.remove('show'), 2800); 
 }
 
-// Initialize - load from Google Sheets first!
+// Initialize - ALWAYS load from Google Sheets first
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('App starting - loading from Google Sheets...');
   
@@ -913,8 +943,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     amountInput.addEventListener('input', updateConvHint);
   }
   
-  // Load from Google Sheets - this is the primary source
-  await syncData(true);
+  // Load from Google Sheets (shows loading screen)
+  try {
+    await loadDataFromSheet();
+  } catch(e) {
+    console.error('Initial load error:', e);
+    showToast('⚠ Could not load from Google Sheets');
+  } finally {
+    // Hide loading screen
+    const loadingScreen = document.getElementById('loadingScreen');
+    loadingScreen.classList.add('hide');
+  }
 });
 </script>
 </body>
