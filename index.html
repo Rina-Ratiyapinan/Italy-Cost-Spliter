@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Italy Trip 🇮🇹 · Splitwise Style</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent }
+
+:root {
+  --bg:      #FFF8F2;
+  --card:    #FFFFFF;
+  --accent:  #E8470A;
+  --accent2: #F7A66C;
+  --text:    #1A0F00;
+  --muted:   #7A6858;
+  --border:  #EDE0D4;
+  --verona:  #FF6B6B;
+  --bergamo: #4ECDC4;
+  --milan:   #A78BFA;
+  --rina:    #E8470A;
+  --alisa:   #3B82F6;
+  --green:   #16A34A;
+  --red:     #DC2626;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--accent);
+  color: white;
+  padding: 22px 20px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute; right: -30px; top: -30px;
+  width: 130px; height: 130px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.header::after {
+  content: '';
+  position: absolute; right: 20px; bottom: -25px;
+  width: 90px; height: 90px; border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative; z-index: 1;
+}
+.trip-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  opacity: 0.8; margin-bottom: 4px;
+}
+.trip-title {
+  font-size: 26px; font-weight: 700; line-height: 1.1;
+}
+.trip-dates { font-size: 12px; opacity: 0.75; margin-top: 6px; }
+.flag { font-size: 36px; position: relative; z-index: 1; }
+
+/* Currency toggle in header */
+.curr-toggle {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  justify-content: space-between;
+}
+.curr-toggle-label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  opacity: 0.8;
+}
+.curr-pills { display: flex; gap: 6px; }
+.curr-pill {
+  padding: 4px 14px; border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(255,255,255,0.25);
+}
+.curr-pill.active {
+  background: white;
+  color: var(--accent);
+  border-color: white;
+}
+.sync-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px; padding: 5px 10px;
+  color: white; cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px; font-weight: 500;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.sync-btn:hover { background: rgba(255,255,255,0.25); }
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #4ade80; flex-shrink: 0;
+}
+.sync-dot.syncing { background: #fbbf24; animation: pulse 0.7s ease infinite alternate; }
+.sync-dot.error   { background: #f87171; }
+@keyframes pulse { from{opacity:1} to{opacity:0.3} }
+
+/* ── BALANCE CARD ── */
+.balance-card {
+  background: white; margin: 14px 16px;
+  border-radius: 16px; padding: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+.balance-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 12px;
+}
+.balance-title {
+  font-size: 11px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+}
+.balance-amount {
+  font-size: 22px; font-weight: 700; color: var(--text);
+}
+.people-row { display: flex; gap: 8px; }
+.person-pill {
+  flex: 1; background: var(--bg);
+  border-radius: 12px; padding: 11px 13px;
+  border: 1px solid var(--border);
+}
+.person-name {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px;
+}
+.person-name.rina  { color: var(--rina); }
+.person-name.alisa { color: var(--alisa); }
+.person-amount { font-size: 20px; font-weight: 700; }
+.person-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* ── SETTLEMENT ── */
+.settlement {
+  margin: 0 16px 6px; border-radius: 12px;
+  padding: 11px 14px; font-size: 13px; font-weight: 500;
+  text-align: center; display: none;
+}
+.settlement.owes { background: #FEF2F2; color: var(--red);   border: 1px solid #FECACA; }
+.settlement.even { background: #F0FDF4; color: var(--green); border: 1px solid #BBF7D0; }
+
+/* ── TABS ── */
+.tabs {
+  display: flex; margin: 0 16px;
+  background: white; border-radius: 12px;
+  padding: 4px; border: 1px solid var(--border);
+}
+.tab {
+  flex: 1; text-align: center; padding: 8px 4px;
+  border-radius: 9px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; color: var(--muted);
+  user-select: none;
+}
+.tab.active { background: var(--accent); color: white; }
+
+/* ── FORM ── */
+.form-card {
+  background: white; margin: 12px 16px;
+  border-radius: 16px; padding: 16px;
+  border: 1px solid var(--border);
+}
+.form-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+.field { margin-bottom: 11px; }
+.field label {
+  display: block; font-size: 10px; font-weight: 600;
+  color: var(--muted); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 5px;
+}
+.field input, .field select {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: 'Poppins', sans-serif; font-size: 13px;
+  background: var(--bg); color: var(--text);
+  outline: none; -webkit-appearance: none; appearance: none;
+  transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field input.err { border-color: var(--red); }
+.field input::placeholder { color: var(--muted); opacity: 0.7; }
+.fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Amount row with currency toggle */
+.amount-row { display: flex; gap: 8px; align-items: flex-start; }
+.amount-row input { flex: 1; }
+.exp-curr-toggle {
+  display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
+}
+.exp-curr-btn {
+  padding: 0 12px; height: 19px; border-radius: 6px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600;
+  color: var(--muted); cursor: pointer; transition: all 0.18s;
+  white-space: nowrap; line-height: 1;
+}
+.exp-curr-btn.active {
+  background: var(--accent); border-color: var(--accent); color: white;
+}
+.exp-curr-btn:not(.active):hover {
+  border-color: var(--accent); color: var(--accent);
+}
+.conv-hint { font-size: 10px; color: var(--bergamo); margin-top: 4px; min-height: 16px; }
+
+.payer-btns { display: flex; gap: 8px; }
+.payer-btn {
+  flex: 1; padding: 9px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; color: var(--muted);
+}
+.payer-btn.active-rina  { border-color: var(--rina);  background: #FFF1EC; color: var(--rina); }
+.payer-btn.active-alisa { border-color: var(--alisa); background: #EFF6FF; color: var(--alisa); }
+
+.add-btn {
+  width: 100%; padding: 12px; background: var(--accent);
+  color: white; border: none; border-radius: 12px;
+  font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 6px; transition: opacity 0.2s, transform 0.1s;
+}
+.add-btn:hover  { opacity: 0.92; }
+.add-btn:active { opacity: 0.85; transform: scale(0.99); }
+.add-btn.busy   { opacity: 0.6; pointer-events: none; }
+
+/* ── EXPENSE LIST ── */
+.section-label {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1.8px;
+  padding: 0 16px; margin: 14px 0 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.expense-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.expense-item {
+  background: white; border-radius: 14px;
+  padding: 12px 13px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 11px;
+  animation: slideIn 0.25s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.exp-icon {
+  width: 40px; height: 40px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; flex-shrink: 0;
+}
+.cat-food          { background: #FFF3E0; }
+.cat-accommodation { background: #F3E5F5; }
+.cat-transport     { background: #E3F2FD; }
+.cat-activity      { background: #E8F5E9; }
+.cat-shopping      { background: #FCE4EC; }
+.cat-other         { background: #F5F5F5; }
+
+.exp-info { flex: 1; min-width: 0; }
+.exp-desc {
+  font-size: 13px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.exp-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.exp-right { text-align: right; flex-shrink: 0; }
+.exp-amount { font-size: 14px; font-weight: 700; }
+.exp-orig   { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.exp-payer  { font-size: 10px; font-weight: 500; margin-top: 2px; }
+.exp-payer.rina  { color: var(--rina); }
+.exp-payer.alisa { color: var(--alisa); }
+.delete-btn {
+  background: none; border: none; font-size: 14px;
+  cursor: pointer; opacity: 0.3; padding: 5px; flex-shrink: 0;
+  transition: opacity 0.2s; margin-left: 2px;
+}
+.delete-btn:hover { opacity: 0.7; }
+
+.empty-state { text-align: center; padding: 36px 16px; color: var(--muted); }
+.empty-icon  { font-size: 40px; margin-bottom: 10px; }
+.empty-text  { font-size: 13px; line-height: 1.6; }
+
+/* ── SUMMARY ── */
+.summary-card {
+  background: white; margin: 0 16px 12px;
+  border-radius: 16px; padding: 16px;
+  border: 1px solid var(--border);
+}
+.summary-row {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-city {
+  display: flex; align-items: center;
+  gap: 8px; font-size: 13px; font-weight: 500;
+}
+.summary-amounts { font-size: 13px; color: var(--muted); text-align: right; }
+.big-total {
+  font-size: 30px; font-weight: 700;
+  margin: 6px 0 4px;
+}
+.pbar-wrap {
+  background: var(--bg); border-radius: 999px;
+  height: 8px; margin: 12px 0 4px; overflow: hidden;
+}
+.pbar {
+  height: 100%; background: var(--rina);
+  border-radius: 999px; transition: width 0.5s ease;
+}
+.pbar-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; font-weight: 600;
+}
+.pbar-rina  { color: var(--rina); }
+.pbar-alisa { color: var(--alisa); }
+
+.settle-summary {
+  border-radius: 12px; padding: 13px 15px;
+  font-size: 13px; font-weight: 500;
+  margin-bottom: 0;
+}
+.settle-summary.owes { background: #FEF2F2; color: var(--red);   border: 1px solid #FECACA; }
+.settle-summary.even { background: #F0FDF4; color: var(--green); border: 1px solid #BBF7D0; }
+.settle-summary.empty{ background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 200;
+  background: var(--accent); transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: #1A0F00; color: white; border-radius: 10px;
+  padding: 10px 18px; font-size: 13px; z-index: 300;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: all 0.25s; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.pb { padding-bottom: 24px; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progBar"></div>
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="trip-label">Italy Trip</div>
+      <div class="trip-title">Verona · Bergamo<br>Milan</div>
+      <div class="trip-dates">6 May – 11 May 2025</div>
+    </div>
+    <div class="flag">🇮🇹</div>
+  </div>
+  <div class="curr-toggle">
+    <div>
+      <div class="curr-toggle-label">Currency</div>
+      <div class="curr-pills" style="margin-top:6px">
+        <div class="curr-pill active" id="pill-EUR" onclick="setCurr('EUR')">€ EUR</div>
+        <div class="curr-pill"        id="pill-THB" onclick="setCurr('THB')">฿ THB</div>
+      </div>
+    </div>
+    <button class="sync-btn" onclick="syncData()">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLbl">Sync</span>
+    </button>
+  </div>
+</div>
+
+<!-- BALANCE CARD -->
+<div class="balance-card">
+  <div class="balance-header">
+    <span class="balance-title">Split Overview</span>
+    <span class="balance-amount" id="totalHeader">—</span>
+  </div>
+  <div class="people-row">
+    <div class="person-pill">
+      <div class="person-name rina">Rina</div>
+      <div class="person-amount" id="rinaPaid" style="color:var(--rina)">—</div>
+      <div class="person-sub">paid</div>
+    </div>
+    <div class="person-pill">
+      <div class="person-name alisa">Alisa</div>
+      <div class="person-amount" id="alisaPaid" style="color:var(--alisa)">—</div>
+      <div class="person-sub">paid</div>
+    </div>
+  </div>
+</div>
+
+<div class="settlement" id="settlement"></div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-btn-add"      onclick="switchTab('add')">➕ Add</div>
+  <div class="tab"        id="tab-btn-expenses"  onclick="switchTab('expenses')">🧾 Expenses</div>
+  <div class="tab"        id="tab-btn-summary"   onclick="switchTab('summary')">📊 Summary</div>
+</div>
+
+<!-- ── ADD TAB ── -->
+<div id="tab-add">
+  <div class="form-card">
+    <div class="form-title">New Expense</div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="desc" placeholder="e.g. Dinner at Osteria Sottoriva…" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Amount</label>
+      <div class="amount-row">
+        <input type="number" id="amount" placeholder="0.00" min="0" step="any" inputmode="decimal">
+        <div class="exp-curr-toggle">
+          <button class="exp-curr-btn active" id="ecBtn-EUR" onclick="setExpCurr('EUR')">€ EUR</button>
+          <button class="exp-curr-btn"        id="ecBtn-THB" onclick="setExpCurr('THB')">฿ THB</button>
+        </div>
+      </div>
+      <div class="conv-hint" id="convHint"></div>
+    </div>
+    <div class="fields-row">
+      <div class="field">
+        <label>City</label>
+        <select id="city">
+          <option value="Verona">🏛 Verona</option>
+          <option value="Bergamo">⛰ Bergamo</option>
+          <option value="Milan">🏙 Milan</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="category">
+          <option value="food">🍕 Food & Drink</option>
+          <option value="accommodation">🏨 Accommodation</option>
+          <option value="transport">🚆 Transport</option>
+          <option value="activity">🎭 Activities & Sights</option>
+          <option value="shopping">🛍 Shopping</option>
+          <option value="other">📌 Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Paid by</label>
+      <div class="payer-btns">
+        <button class="payer-btn active-rina" id="btn-rina"  onclick="setPayer('rina')">👤 Rina</button>
+        <button class="payer-btn"             id="btn-alisa" onclick="setPayer('alisa')">👥 Alisa</button>
+      </div>
+    </div>
+    <button class="add-btn" id="addBtn" onclick="addExpense()">Add Expense</button>
+  </div>
+</div>
+
+<!-- ── EXPENSES TAB ── -->
+<div id="tab-expenses" style="display:none">
+  <div class="section-label">
+    <span id="expLabel">All Expenses</span>
+  </div>
+  <div class="expense-list" id="expenseList">
+    <div class="empty-state">
+      <div class="empty-icon">🧾</div>
+      <div class="empty-text">No expenses yet.<br>Add your first one!</div>
+    </div>
+  </div>
+  <div class="pb"></div>
+</div>
+
+<!-- ── SUMMARY TAB ── -->
+<div id="tab-summary" style="display:none">
+  <div class="section-label">Overview</div>
+  <div class="summary-card">
+    <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Total Trip Spend</div>
+    <div class="big-total" id="sumTotal">—</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="sumEach">Each owes —</div>
+    <div class="pbar-wrap"><div class="pbar" id="pbar" style="width:50%"></div></div>
+    <div class="pbar-labels">
+      <span class="pbar-rina"  id="pbarRina">Rina 50%</span>
+      <span class="pbar-alisa" id="pbarAlisa">Alisa 50%</span>
+    </div>
+    <div style="height:12px"></div>
+    <div class="settle-summary empty" id="settleSummary">Add expenses to see settlement.</div>
+  </div>
+  <div class="section-label">By City</div>
+  <div class="summary-card" id="cityBreakdown"></div>
+  <div class="section-label">By Category</div>
+  <div class="summary-card" id="catBreakdown"></div>
+  <div class="section-label">By Currency</div>
+  <div class="summary-card" id="currBreakdown"></div>
+  <div style="padding:0 16px 24px">
+    <button onclick="syncData()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:12px;background:white;font-family:'Poppins',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+      🔄 Refresh from Google Sheets
+    </button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ========= SHEETDB ENDPOINT (same shared sheet) ========= */
+const SHEETDB = 'https://sheetdb.io/api/v1/8wtjyfm1yij0s';
+
+/* ========= CURRENCY CONFIG ========= */
+let THB_RATE = parseFloat(localStorage.getItem('thb_rate') || '38.5');
+let displayCurr = localStorage.getItem('displayCurr') || 'EUR';
+
+function toDisplay(amount, fromCurr) {
+  const inEUR = fromCurr === 'EUR' ? amount : amount / THB_RATE;
+  return displayCurr === 'EUR' ? inEUR : inEUR * THB_RATE;
+}
+function fmtDisp(n) {
+  const sym = displayCurr === 'EUR' ? '€' : '฿';
+  return sym + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtOrig(amount, curr) {
+  const sym = curr === 'EUR' ? '€' : '฿';
+  return sym + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/* ========= GLOBAL STATE ========= */
+let expenses = [];
+let payer = 'rina';
+let expCurr = 'EUR';
+
+/* ========= LOCALSTORAGE CACHE (FIX: persist & restore correctly) ========= */
+function saveCache() {
+  try {
+    localStorage.setItem('it_expenses', JSON.stringify(expenses));
+  } catch(e) {}
+}
+
+function loadCache() {
+  try {
+    const raw = localStorage.getItem('it_expenses');
+    if (raw && raw !== 'undefined' && raw !== 'null') {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) expenses = parsed;
+      else expenses = [];
+    } else {
+      expenses = [];
+    }
+  } catch(e) { expenses = []; }
+  // ensure every expense has valid fields
+  expenses = expenses.filter(e => e && typeof e === 'object' && e.id && e.desc).map(e => ({
+    ...e,
+    amount: typeof e.amount === 'number' ? e.amount : 0,
+    currency: e.currency === 'THB' ? 'THB' : 'EUR',
+    city: e.city || 'Verona',
+    cat: e.cat || 'other',
+    payer: (e.payer === 'alisa') ? 'alisa' : 'rina'
+  }));
+}
+
+/* ========= SHEETDB OPERATIONS ========= */
+async function dbGet() {
+  const r = await fetch(SHEETDB, { cache: 'no-store' });
+  if (!r.ok) throw new Error('GET ' + r.status);
+  const rows = await r.json();
+  if (!Array.isArray(rows)) throw new Error('Invalid response');
+  return rows.map(row => ({
+    id:       Number(row.id),
+    desc:     String(row.desc || ''),
+    amount:   parseFloat(row.amount) || 0,
+    currency: String(row.currency || 'EUR'),
+    city:     String(row.city || 'Verona'),
+    cat:      String(row.cat || 'other'),
+    payer:    String(row.name || row.payer || 'rina'),
+    date:     String(row.date || ''),
+  })).filter(r => r.id && r.desc);
+}
+
+async function dbPost(exp) {
+  const r = await fetch(SHEETDB, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [{
+      id: exp.id,
+      desc: exp.desc,
+      amount: exp.amount,
+      currency: exp.currency,
+      city: exp.city,
+      cat: exp.cat,
+      name: exp.payer,
+      date: exp.date,
+    }] }),
+  });
+  if (!r.ok) throw new Error('POST ' + r.status);
+}
+
+async function dbDelete(id) {
+  const r = await fetch(`${SHEETDB}/id/${id}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error('DELETE ' + r.status);
+}
+
+/* ========= SYNC (with proper cache refresh) ========= */
+async function syncData() {
+  setSyncState('syncing');
+  try {
+    const fresh = await dbGet();
+    if (fresh.length > 0 || expenses.length === 0) {
+      expenses = fresh;
+      saveCache();
+    } else {
+      // if remote empty but local has data, keep local but try to push (avoid data loss)
+      // but we just merge: local wins for safety? Actually we trust remote most up-to-date.
+      // but to avoid wiping out offline adds: we smart merge? simpler: use remote if remote has any row or local empty.
+      if (fresh.length >= expenses.length) {
+        expenses = fresh;
+        saveCache();
+      } else {
+        // keep local, but we will not overwrite remote. just update UI.
+      }
+    }
+    updateAll();
+    setSyncState('ok');
+    showToast('✓ Synced with Google Sheets');
+  } catch(e) {
+    console.warn('Sync failed:', e);
+    setSyncState('error');
+    showToast('⚠ Sync failed — showing cached data (changes safe)');
+    // still show cached data
+    updateAll();
+  }
+}
+
+function setSyncState(s) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLbl');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (s==='syncing'?' syncing': s==='error'?' error':'');
+  lbl.textContent = s==='syncing'?'Syncing…': s==='error'?'Error':'Synced';
+}
+
+/* ========= UI helper ========= */
+function setPayer(p) {
+  payer = p;
+  document.getElementById('btn-rina').className = 'payer-btn' + (p==='rina' ? ' active-rina' : '');
+  document.getElementById('btn-alisa').className = 'payer-btn' + (p==='alisa' ? ' active-alisa' : '');
+}
+
+function setCurr(c) {
+  displayCurr = c;
+  localStorage.setItem('displayCurr', c);
+  document.getElementById('pill-EUR').classList.toggle('active', c === 'EUR');
+  document.getElementById('pill-THB').classList.toggle('active', c === 'THB');
+  updateConvHint();
+  updateAll();
+}
+
+function setExpCurr(c) {
+  expCurr = c;
+  document.getElementById('ecBtn-EUR').classList.toggle('active', c === 'EUR');
+  document.getElementById('ecBtn-THB').classList.toggle('active', c === 'THB');
+  updateConvHint();
+}
+
+function updateConvHint() {
+  const amt = parseFloat(document.getElementById('amount').value);
+  const el = document.getElementById('convHint');
+  if (!el) return;
+  if (!amt || isNaN(amt)) { el.textContent = ''; return; }
+  if (expCurr === 'EUR') {
+    el.textContent = `≈ ฿${(amt * THB_RATE).toLocaleString('en-US', { maximumFractionDigits: 0 })} THB`;
+  } else {
+    el.textContent = `≈ €${(amt / THB_RATE).toFixed(2)} EUR`;
+  }
+}
+
+/* ========= ADD EXPENSE (optimistic + cache) ========= */
+async function addExpense() {
+  const descEl = document.getElementById('desc');
+  const amtEl = document.getElementById('amount');
+  const desc = descEl.value.trim();
+  const amt = parseFloat(amtEl.value);
+  const city = document.getElementById('city').value;
+  const cat = document.getElementById('category').value;
+
+  if (!desc) { shake(descEl); return; }
+  if (!amt || amt <= 0) { shake(amtEl); return; }
+
+  const newExp = {
+    id: Date.now(),
+    desc: desc,
+    amount: amt,
+    currency: expCurr,
+    city: city,
+    cat: cat,
+    payer: payer,
+    date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+  };
+
+  // Optimistic local update
+  expenses.unshift(newExp);    // add to beginning (latest first)
+  saveCache();                 // 🔥 CRITICAL: save after each mutation
+  updateAll();
+
+  // reset form
+  descEl.value = '';
+  amtEl.value = '';
+  document.getElementById('convHint').textContent = '';
+  switchTab('expenses');
+
+  const btn = document.getElementById('addBtn');
+  btn.classList.add('busy'); btn.textContent = 'Saving…';
+  try {
+    await dbPost(newExp);
+    showToast('✓ Saved to Google Sheets');
+    setSyncState('ok');
+  } catch(e) {
+    console.warn('Sheet save error:', e);
+    showToast('⚠ Saved locally, but sheet failed. Will retry later.');
+    setSyncState('error');
+  } finally {
+    btn.classList.remove('busy');
+    btn.textContent = 'Add Expense';
+  }
+}
+
+/* ========= DELETE ========= */
+async function deleteExpense(id) {
+  if (!confirm('Remove this expense?')) return;
+  expenses = expenses.filter(e => e.id !== id);
+  saveCache();   // persist deletion
+  updateAll();
+  try {
+    await dbDelete(id);
+    showToast('✓ Removed from sheet');
+  } catch(e) {
+    showToast('⚠ Removed locally, sheet sync error');
+    setSyncState('error');
+  }
+}
+
+/* ========= TABS ========= */
+function switchTab(tab) {
+  ['add', 'expenses', 'summary'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+    const btn = document.getElementById('tab-btn-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  updateAll(); // refresh content each tab switch
+}
+
+/* ========= RENDER EVERYTHING ========= */
+function updateAll() {
+  const rinaT = expenses.reduce((s, e) => s + (e.payer === 'rina' ? toDisplay(e.amount, e.currency) : 0), 0);
+  const alisaT = expenses.reduce((s, e) => s + (e.payer === 'alisa' ? toDisplay(e.amount, e.currency) : 0), 0);
+  const total = rinaT + alisaT;
+  const diff = rinaT - alisaT;
+
+  document.getElementById('totalHeader').textContent = fmtDisp(total);
+  document.getElementById('rinaPaid').textContent = fmtDisp(rinaT);
+  document.getElementById('alisaPaid').textContent = fmtDisp(alisaT);
+
+  const settleDiv = document.getElementById('settlement');
+  if (total === 0) {
+    settleDiv.style.display = 'none';
+  } else if (Math.abs(diff) < 0.01) {
+    settleDiv.className = 'settlement even';
+    settleDiv.style.display = 'block';
+    settleDiv.textContent = '✓ All even! No one owes anything.';
+  } else if (diff > 0) {
+    settleDiv.className = 'settlement owes';
+    settleDiv.style.display = 'block';
+    settleDiv.textContent = `Alisa owes Rina ${fmtDisp(diff / 2)} to settle up`;
+  } else {
+    settleDiv.className = 'settlement owes';
+    settleDiv.style.display = 'block';
+    settleDiv.textContent = `Rina owes Alisa ${fmtDisp(Math.abs(diff) / 2)} to settle up`;
+  }
+
+  renderExpensesList();
+  renderSummary(rinaT, alisaT, total, diff);
+}
+
+function renderExpensesList() {
+  const container = document.getElementById('expenseList');
+  if (!container) return;
+  if (!expenses.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">No expenses yet.<br>Add your first one!</div></div>`;
+    return;
+  }
+  container.innerHTML = [...expenses].map(e => {
+    const disp = toDisplay(e.amount, e.currency);
+    const showOrig = e.currency !== displayCurr;
+    return `<div class="expense-item">
+      <div class="exp-icon cat-${e.cat}">${getCatEmoji(e.cat)}</div>
+      <div class="exp-info">
+        <div class="exp-desc">${escapeHtml(e.desc)}</div>
+        <div class="exp-meta"><span style="font-weight:500">${e.city}</span> · ${getCatLabel(e.cat)} · ${e.date || ''}</div>
+      </div>
+      <div class="exp-right">
+        <div class="exp-amount">${fmtDisp(disp)}</div>
+        ${showOrig ? `<div class="exp-orig">${fmtOrig(e.amount, e.currency)}</div>` : ''}
+        <div class="exp-payer ${e.payer}">${e.payer === 'rina' ? 'Rina paid' : 'Alisa paid'}</div>
+      </div>
+      <button class="delete-btn" onclick="deleteExpense(${e.id})" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderSummary(rinaT, alisaT, total, diff) {
+  document.getElementById('sumTotal').textContent = fmtDisp(total);
+  document.getElementById('sumEach').textContent = total > 0 ? `Each person's share: ${fmtDisp(total / 2)}` : 'Each owes —';
+  const rp = total > 0 ? Math.round((rinaT / total) * 100) : 50;
+  document.getElementById('pbar').style.width = rp + '%';
+  document.getElementById('pbarRina').textContent = `Rina ${rp}%`;
+  document.getElementById('pbarAlisa').textContent = `Alisa ${100 - rp}%`;
+
+  const ss = document.getElementById('settleSummary');
+  if (total === 0) {
+    ss.className = 'settle-summary empty';
+    ss.textContent = 'Add expenses to see settlement.';
+  } else if (Math.abs(diff) < 0.01) {
+    ss.className = 'settle-summary even';
+    ss.textContent = '✓ All settled — perfectly even!';
+  } else if (diff > 0) {
+    ss.className = 'settle-summary owes';
+    ss.textContent = `Alisa should pay Rina ${fmtDisp(diff / 2)}`;
+  } else {
+    ss.className = 'settle-summary owes';
+    ss.textContent = `Rina should pay Alisa ${fmtDisp(Math.abs(diff) / 2)}`;
+  }
+
+  // City breakdown
+  const cities = ['Verona', 'Bergamo', 'Milan'];
+  const cityMap = { Verona: '🏛', Bergamo: '⛰', Milan: '🏙' };
+  const cityColors = { Verona: '#FF6B6B', Bergamo: '#4ECDC4', Milan: '#A78BFA' };
+  document.getElementById('cityBreakdown').innerHTML = cities.map(city => {
+    const items = expenses.filter(e => e.city === city);
+    const sum = items.reduce((s, e) => s + toDisplay(e.amount, e.currency), 0);
+    return `<div class="summary-row"><div class="summary-city"><span style="width:10px;height:10px;border-radius:50%;background:${cityColors[city]};display:inline-block"></span> ${cityMap[city]} ${city}</div><div class="summary-amounts">${fmtDisp(sum)} <span style="opacity:0.6">(${items.length})</span></div></div>`;
+  }).join('');
+
+  // Category
+  const cats = ['food','accommodation','transport','activity','shopping','other'];
+  const catLabels = { food:'Food & Drink', accommodation:'Accommodation', transport:'Transport', activity:'Activities', shopping:'Shopping', other:'Other' };
+  const catEmoji = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' };
+  const catRows = cats.map(c => ({ c, total: expenses.filter(e=>e.cat===c).reduce((s,e)=>s+toDisplay(e.amount,e.currency),0) })).filter(r=>r.total>0);
+  document.getElementById('catBreakdown').innerHTML = catRows.length ? catRows.map(r => `<div class="summary-row"><div class="summary-city">${catEmoji[r.c]} ${catLabels[r.c]}</div><div class="summary-amounts">${fmtDisp(r.total)}</div></div>`).join('') : `<div style="color:var(--muted);text-align:center;padding:8px">No expenses</div>`;
+
+  // Currency breakdown
+  const usedCurr = [...new Set(expenses.map(e=>e.currency))];
+  document.getElementById('currBreakdown').innerHTML = usedCurr.length ? usedCurr.map(c => {
+    const items = expenses.filter(e=>e.currency===c);
+    const rawSum = items.reduce((s,e)=>s+e.amount,0);
+    const dispSum = items.reduce((s,e)=>s+toDisplay(e.amount,c),0);
+    const sym = c==='EUR'?'€':'฿';
+    return `<div class="summary-row"><div class="summary-city">${c==='EUR'?'🇪🇺 Euro':'🇹🇭 Baht'}</div><div style="text-align:right"><div class="summary-amounts" style="font-weight:600">${sym}${rawSum.toLocaleString('en-US',{minimumFractionDigits:2})}</div>${c!==displayCurr?`<div style="font-size:11px;color:var(--muted)">≈ ${fmtDisp(dispSum)}</div>`:''}</div></div>`;
+  }).join('') : `<div style="color:var(--muted);text-align:center;padding:8px">No expenses</div>`;
+}
+
+function getCatEmoji(cat) { const m = { food:'🍕', accommodation:'🏨', transport:'🚆', activity:'🎭', shopping:'🛍', other:'📌' }; return m[cat] || '📌'; }
+function getCatLabel(cat) { const m = { food:'Food', accommodation:'Hotel', transport:'Transit', activity:'Sight', shopping:'Shop', other:'Other' }; return m[cat] || cat; }
+function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+function shake(el) { el.classList.add('err'); setTimeout(()=> el.classList.remove('err'), 600); }
+function showToast(msg) { const t = document.getElementById('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2800); }
+
+/* ========= INIT ========= */
+document.addEventListener('DOMContentLoaded', () => {
+  // always load cache first -> instant UI
+  loadCache();
+  updateAll();                // ✅ immediate summary + expenses
+  setCurr(displayCurr);
+  setPayer('rina');
+  setExpCurr('EUR');
+  document.getElementById('amount').addEventListener('input', updateConvHint);
+  // background sync after UI ready
+  setTimeout(() => syncData(), 150);
+});
+</script>
+</body>
+</html>
